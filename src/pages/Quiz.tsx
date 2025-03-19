@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, ArrowRight, Car, Shield, Heart, Zap, Trophy, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Car, Shield, Heart, Zap, Trophy, AlertCircle, Building, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/Header';
 import { Card } from '@/components/Card';
@@ -9,13 +9,13 @@ import { Progress } from '@/components/ui/progress';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Traffic challenges - replacing quiz questions
+// Traffic challenges
 const trafficChallenges = [
   {
     id: 1,
-    situation: "Red traffic light ahead",
-    correctAction: "stop",
-    explanation: "Always stop at red traffic lights and wait until they turn green."
+    situation: "School zone ahead",
+    correctAction: "slow",
+    explanation: "Always slow down in school zones for the safety of children."
   },
   {
     id: 2,
@@ -25,9 +25,9 @@ const trafficChallenges = [
   },
   {
     id: 3,
-    situation: "School zone ahead",
-    correctAction: "slow",
-    explanation: "Reduce your speed in school zones to ensure the safety of children."
+    situation: "Red traffic light ahead",
+    correctAction: "stop",
+    explanation: "Always stop at red traffic lights and wait until they turn green."
   },
   {
     id: 4,
@@ -43,6 +43,15 @@ const trafficChallenges = [
   }
 ];
 
+// Traffic elements that can appear on the road
+const trafficElements = [
+  { type: "car", color: "#3982e4", width: 40, height: 70 },
+  { type: "truck", color: "#e45b39", width: 50, height: 100 },
+  { type: "school", color: "#eab308", width: 120, height: 80 },
+  { type: "pedestrian", color: "#22c55e", width: 20, height: 20 },
+  { type: "trafficLight", color: "#ef4444", width: 30, height: 60 }
+];
+
 const TrafficGame = () => {
   const isMobile = useIsMobile();
   const [gameStarted, setGameStarted] = useState(false);
@@ -53,13 +62,23 @@ const TrafficGame = () => {
   const [currentChallenge, setCurrentChallenge] = useState<number | null>(null);
   const [challengeVisible, setChallengeVisible] = useState(false);
   const [carPosition, setCarPosition] = useState(1); // 0: left, 1: center, 2: right
-  const [obstaclePositions, setObstaclePositions] = useState<number[]>([]);
+  const [roadElements, setRoadElements] = useState<Array<{
+    type: string;
+    lane: number;
+    position: number;
+    id: number;
+    color: string;
+    width: number;
+    height: number;
+  }>>([]);
   const [roadSpeed, setRoadSpeed] = useState(5);
   const [challengeTimeout, setChallengeTimeout] = useState<NodeJS.Timeout | null>(null);
   const [lastChallengeTime, setLastChallengeTime] = useState(0);
+  const [nextElementId, setNextElementId] = useState(1);
   
   const gameLoopRef = useRef<number | null>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
+  const lastFrameTimeRef = useRef<number>(0);
   
   // Start the game
   const handleStartGame = () => {
@@ -69,23 +88,63 @@ const TrafficGame = () => {
     setDistance(0);
     setLives(3);
     setCarPosition(1);
-    setObstaclePositions([]);
+    setRoadElements([]);
     setRoadSpeed(5);
     setCurrentChallenge(null);
     setChallengeVisible(false);
-    toast("Drive safely! Watch for traffic challenges!");
+    setNextElementId(1);
+    toast("Drive safely! Watch for traffic elements!");
     
     if (gameLoopRef.current) {
       cancelAnimationFrame(gameLoopRef.current);
     }
     
+    lastFrameTimeRef.current = performance.now();
     gameLoop();
   };
   
+  // Check collision between player car and road elements
+  const checkCollisions = () => {
+    const playerLane = carPosition;
+    
+    roadElements.forEach(element => {
+      if (element.lane === playerLane && 
+          element.position > 380 && element.position < 450) {
+        // Collision detected
+        if (element.type === "pedestrian") {
+          toast.error("You hit a pedestrian! Always yield to pedestrians.");
+          setLives(prev => prev - 1);
+        } else if (element.type === "car" || element.type === "truck") {
+          toast.error("Car crash! Maintain safe distance from other vehicles.");
+          setLives(prev => prev - 1);
+        }
+        
+        // Remove the collided element
+        setRoadElements(prev => prev.filter(el => el.id !== element.id));
+      }
+    });
+  };
+  
   // Game loop
-  const gameLoop = () => {
+  const gameLoop = (timestamp?: number) => {
+    if (!timestamp) timestamp = performance.now();
+    const deltaTime = timestamp - lastFrameTimeRef.current;
+    lastFrameTimeRef.current = timestamp;
+    
     // Update game state
     setDistance(prev => prev + 1);
+    
+    // Move existing road elements down
+    setRoadElements(prev => 
+      prev.map(element => ({
+        ...element,
+        position: element.position + roadSpeed * (deltaTime / 16.67) // Normalize to 60fps
+      }))
+      .filter(element => element.position < 600) // Remove elements that have moved off screen
+    );
+    
+    // Check for collisions
+    checkCollisions();
     
     // Increase speed slightly over time
     if (distance > 0 && distance % 500 === 0) {
@@ -95,25 +154,41 @@ const TrafficGame = () => {
     
     // Random chance to spawn a traffic challenge
     const now = Date.now();
-    if (!challengeVisible && !currentChallenge && now - lastChallengeTime > 5000 && Math.random() < 0.01) {
+    if (!challengeVisible && !currentChallenge && now - lastChallengeTime > 8000 && Math.random() < 0.007) {
       spawnChallenge();
     }
     
-    // Random chance to spawn obstacle
+    // Random chance to spawn traffic elements
     if (Math.random() < 0.02) {
-      const randomLane = Math.floor(Math.random() * 3);
-      setObstaclePositions(prev => [...prev, randomLane]);
-      
-      // Remove obstacles after they pass the screen
-      setTimeout(() => {
-        setObstaclePositions(prev => prev.slice(1));
-      }, 3000);
+      spawnTrafficElement();
     }
     
     // Continue the game loop if not game over
     if (!gameOver) {
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     }
+  };
+  
+  // Spawn a traffic element
+  const spawnTrafficElement = () => {
+    const randomLane = Math.floor(Math.random() * 3);
+    const randomElementIndex = Math.floor(Math.random() * trafficElements.length);
+    const element = trafficElements[randomElementIndex];
+    
+    setRoadElements(prev => [
+      ...prev, 
+      {
+        type: element.type,
+        lane: randomLane,
+        position: -100, // Start above the visible area
+        id: nextElementId,
+        color: element.color,
+        width: element.width,
+        height: element.height
+      }
+    ]);
+    
+    setNextElementId(prev => prev + 1);
   };
   
   // Spawn a traffic challenge
@@ -135,7 +210,7 @@ const TrafficGame = () => {
   
   // Handle player response to traffic challenge
   const handleChallengeResponse = (action: string) => {
-    if (!currentChallenge || !challengeVisible) return;
+    if (currentChallenge === null || !challengeVisible) return;
     
     // Clear the challenge timeout
     if (challengeTimeout) {
@@ -220,6 +295,58 @@ const TrafficGame = () => {
     };
   }, []);
   
+  // Helper function to render traffic elements
+  const renderTrafficElement = (element: typeof roadElements[0]) => {
+    let icon;
+    let borderRadius = "10px";
+    
+    switch (element.type) {
+      case "car":
+        icon = <Car className="w-full h-full text-white p-1" />;
+        break;
+      case "truck":
+        icon = <Car className="w-full h-full text-white p-1" />;
+        borderRadius = "5px";
+        break;
+      case "school":
+        icon = <Building className="w-full h-full text-white p-2" />;
+        borderRadius = "2px";
+        break;
+      case "pedestrian":
+        icon = <Users className="w-full h-full text-white" />;
+        borderRadius = "50%";
+        break;
+      case "trafficLight":
+        icon = <div className="flex flex-col h-full justify-around px-1">
+          <div className="bg-red-500 rounded-full h-2 w-2"></div>
+          <div className="bg-yellow-500 rounded-full h-2 w-2"></div>
+          <div className="bg-green-500 rounded-full h-2 w-2"></div>
+        </div>;
+        break;
+      default:
+        icon = <AlertCircle className="w-full h-full text-white p-1" />;
+    }
+    
+    return (
+      <div 
+        key={element.id}
+        className="absolute"
+        style={{
+          backgroundColor: element.color,
+          width: `${element.width}px`,
+          height: `${element.height}px`,
+          left: `calc(${(element.lane * 33.33) + 16.67}% - ${element.width / 2}px)`,
+          top: `${element.position}px`,
+          borderRadius,
+          boxShadow: `0 0 10px ${element.color}80`,
+          transition: 'left 0.2s ease-out',
+        }}
+      >
+        {icon}
+      </div>
+    );
+  };
+  
   return (
     <div className="min-h-screen w-full bg-background pt-20 pb-16">
       <Header />
@@ -238,7 +365,7 @@ const TrafficGame = () => {
                 </div>
                 
                 <h2 className="text-2xl font-bold mb-2">
-                  {gameOver ? "Game Over!" : "Traffic Runner Challenge"}
+                  {gameOver ? "Game Over!" : "Real-Life Driving Simulator"}
                 </h2>
                 
                 {gameOver ? (
@@ -252,12 +379,12 @@ const TrafficGame = () => {
                   </>
                 ) : (
                   <p className="text-muted-foreground mb-6">
-                    Drive safely through traffic, avoid obstacles, and respond to traffic challenges!
+                    Navigate through a real-life city with schools, pedestrians, and other vehicles!
                   </p>
                 )}
                 
                 <Button onClick={handleStartGame}>
-                  {gameOver ? "Play Again" : "Start Driving"}
+                  {gameOver ? "Drive Again" : "Start Driving"}
                 </Button>
               </div>
             </Card>
@@ -327,7 +454,10 @@ const TrafficGame = () => {
                     }}
                   />
                   
-                  {/* Car */}
+                  {/* Traffic elements */}
+                  {roadElements.map(renderTrafficElement)}
+                  
+                  {/* Player Car */}
                   <div 
                     className="absolute bottom-16"
                     style={{
@@ -338,27 +468,13 @@ const TrafficGame = () => {
                       left: `calc(${(carPosition * 33.33) + 16.67}% - 20px)`,
                       transition: 'left 0.2s ease-out',
                       boxShadow: '0 0 20px rgba(59, 130, 246, 0.6)',
+                      zIndex: 10
                     }}
                   >
                     <div className="absolute top-1 left-1 right-1 h-1/2 bg-blue-200/30 rounded-t-lg"></div>
                     <div className="absolute bottom-1 left-2 w-2 h-2 rounded-full bg-red-500"></div>
                     <div className="absolute bottom-1 right-2 w-2 h-2 rounded-full bg-red-500"></div>
                   </div>
-                  
-                  {/* Obstacles */}
-                  {obstaclePositions.map((lane, index) => (
-                    <div 
-                      key={index}
-                      className="absolute w-12 h-12 bg-red-500 rounded-md"
-                      style={{
-                        left: `calc(${(lane * 33.33) + 16.67}% - 24px)`,
-                        animation: `obstacleMove ${3}s linear forwards`,
-                        boxShadow: '0 0 10px rgba(239, 68, 68, 0.6)',
-                      }}
-                    >
-                      <AlertCircle className="w-full h-full text-white p-2" />
-                    </div>
-                  ))}
                 </div>
                 
                 {/* Traffic challenge popup */}
@@ -460,22 +576,19 @@ const TrafficGame = () => {
       </main>
       
       {/* CSS animations */}
-      <style jsx global>{`
-        @keyframes roadMove {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 800px; }
-        }
-        
-        @keyframes obstacleMove {
-          0% { top: -48px; }
-          100% { top: 100%; }
-        }
-        
-        @keyframes timerShrink {
-          0% { transform: scaleX(1); }
-          100% { transform: scaleX(0); }
-        }
-      `}</style>
+      <style>
+        {`
+          @keyframes roadMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 800px; }
+          }
+          
+          @keyframes timerShrink {
+            0% { transform: scaleX(1); }
+            100% { transform: scaleX(0); }
+          }
+        `}
+      </style>
     </div>
   );
 };
