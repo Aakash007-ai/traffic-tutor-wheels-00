@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowRight, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle2, XCircle, Award } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/Header';
 import { Card } from '@/components/Card';

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Car, BookOpen, GameController2, BarChart3 } from 'lucide-react';
+import { Car, BookOpen, Gamepad, BarChart3 } from 'lucide-react';
 import AnimatedTransition from './AnimatedTransition';
 
 export const Header: React.FC = () => {
@@ -13,7 +13,7 @@ export const Header: React.FC = () => {
     { name: 'Home', path: '/', icon: Car },
     { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
     { name: 'Quiz', path: '/quiz', icon: BookOpen },
-    { name: 'Simulation', path: '/simulation', icon: GameController2 },
+    { name: 'Simulation', path: '/simulation', icon: Gamepad },
   ];
 
   return (
