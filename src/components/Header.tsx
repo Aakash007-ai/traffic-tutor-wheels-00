@@ -13,7 +13,7 @@ export const Header: React.FC = () => {
     { name: 'Home', path: '/', icon: Car },
     { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
     { name: 'Quiz', path: '/quiz', icon: BookOpen },
-    { name: 'Simulation', path: '/simulation', icon: Gamepad },
+    { name: 'Lessons', path: '/simulation', icon: Gamepad },
   ];
 
   return (
