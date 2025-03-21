@@ -40,3 +40,5 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Removed body font-family to allow Tailwind classes to control fonts */
