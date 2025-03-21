@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Car, CircleAlert, TrafficCone, ShieldCheck, ThumbsUp, Rotate3d, ListChecks, School, AlertTriangle, Users, MapPin, Navigation, ShieldQuestion } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/Header';
@@ -133,6 +133,7 @@ const Simulation = () => {
   const [carPosition, setCarPosition] = useState({ x: 50, y: 70 });
   const [carRotation, setCarRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const animationTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const [completedScenarios, setCompletedScenarios] = useState<number[]>([]);
   
   const lesson = selectedLesson !== null ? trafficLessons.find(l => l.id === selectedLesson) : null;
@@ -159,7 +160,14 @@ const Simulation = () => {
     }
   };
   
+  // Clear all animation timeouts
+  const clearAnimationTimeouts = () => {
+    animationTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+    animationTimeoutsRef.current = [];
+  };
+  
   const resetScenario = () => {
+    clearAnimationTimeouts();
     setSelectedOption(null);
     setIsAnswered(false);
     setCarPosition({ x: 50, y: 70 });
@@ -195,65 +203,88 @@ const Simulation = () => {
       // Animate the car for correct answer
       setIsAnimating(true);
       
+      // Clear any existing animation timeouts
+      clearAnimationTimeouts();
+      
       if (scenario.id === 101) { // Four-way stop animation
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           setCarPosition({ x: 50, y: 20 });
+          setIsAnimating(false);
         }, 500);
+        animationTimeoutsRef.current.push(timeout);
       } else if (scenario.id === 201) { // Pedestrian crossing animation
-        setTimeout(() => {
+        const timeout1 = setTimeout(() => {
           setCarPosition({ x: 50, y: 40 });
         }, 1500);
-        setTimeout(() => {
+        const timeout2 = setTimeout(() => {
           setCarPosition({ x: 50, y: 20 });
+          setIsAnimating(false);
         }, 3000);
+        animationTimeoutsRef.current.push(timeout1, timeout2);
       } else if (scenario.id === 301) { // School zone animation
-        setTimeout(() => {
+        const timeout1 = setTimeout(() => {
           setCarPosition({ x: 50, y: 40 });
         }, 500);
-        setTimeout(() => {
+        const timeout2 = setTimeout(() => {
           setCarPosition({ x: 50, y: 20 });
+          setIsAnimating(false);
         }, 2000);
+        animationTimeoutsRef.current.push(timeout1, timeout2);
       } else { // Default animation
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           setCarPosition({ x: 50, y: 20 });
+          setIsAnimating(false);
         }, 1000);
+        animationTimeoutsRef.current.push(timeout);
       }
     } else {
       toast.error("That's not the safest choice!");
       // Show consequence animation
       setIsAnimating(true);
       
+      // Clear any existing animation timeouts
+      clearAnimationTimeouts();
+      
       if (scenario.id === 101) { // Car collision animation at intersection
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           setCarPosition({ x: 50, y: 40 });
           setCarRotation(45);
+          setIsAnimating(false);
         }, 500);
+        animationTimeoutsRef.current.push(timeout);
       } else if (scenario.id === 201) { // Pedestrian near miss
-        setTimeout(() => {
+        const timeout1 = setTimeout(() => {
           setCarPosition({ x: 50, y: 40 });
           setCarRotation(-20);
         }, 500);
-        setTimeout(() => {
+        const timeout2 = setTimeout(() => {
           setCarRotation(0);
           setCarPosition({ x: 50, y: 20 });
+          setIsAnimating(false);
         }, 1500);
+        animationTimeoutsRef.current.push(timeout1, timeout2);
       } else { // Default wrong answer animation
-        setTimeout(() => {
+        const timeout1 = setTimeout(() => {
           setCarPosition({ x: 50, y: 40 });
           setCarRotation(15);
         }, 500);
-        setTimeout(() => {
+        const timeout2 = setTimeout(() => {
           setCarRotation(-15);
         }, 800);
-        setTimeout(() => {
+        const timeout3 = setTimeout(() => {
           setCarRotation(0);
+          setIsAnimating(false);
         }, 1100);
+        animationTimeoutsRef.current.push(timeout1, timeout2, timeout3);
       }
     }
   };
   
   const handleNextScenario = () => {
     if (!lesson || currentScenario === null) return;
+    
+    // Clear any existing animation timeouts before moving to next scenario
+    clearAnimationTimeouts();
     
     const currentIndex = lesson.scenarios.findIndex(s => s.id === currentScenario);
     if (currentIndex < lesson.scenarios.length - 1) {
@@ -266,10 +297,19 @@ const Simulation = () => {
   };
   
   const handleReturnToLessons = () => {
+    // Clear any existing animation timeouts before returning to lessons
+    clearAnimationTimeouts();
     setViewMode('lessons');
     setSelectedLesson(null);
     setCurrentScenario(null);
   };
+  
+  // Clean up timeouts when component unmounts
+  useEffect(() => {
+    return () => {
+      clearAnimationTimeouts();
+    };
+  }, []);
   
   const getScenarioVisuals = (scenarioId: number) => {
     switch (scenarioId) {
@@ -442,15 +482,20 @@ const Simulation = () => {
                 const isCompleted = completionPercentage === 100;
                 
                 return (
-                  <Card 
-                    key={lesson.id} 
-                    glass 
+                  <div 
+                    key={lesson.id}
+                    onClick={() => handleLessonSelect(lesson.id)}
                     className={cn(
-                      "overflow-hidden cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]",
+                      "cursor-pointer",
                       !lesson.unlocked && "opacity-50 pointer-events-none"
                     )}
-                    onClick={() => handleLessonSelect(lesson.id)}
                   >
+                    <Card 
+                      glass 
+                      className={cn(
+                        "overflow-hidden transition-all hover:shadow-md hover:scale-[1.02]"
+                      )}
+                    >
                     <div className={`w-full h-2 ${lesson.color}`}>
                       <div 
                         className="h-full bg-white/30"
@@ -497,7 +542,8 @@ const Simulation = () => {
                         )}
                       </div>
                     </div>
-                  </Card>
+                    </Card>
+                  </div>
                 );
               })}
             </div>
