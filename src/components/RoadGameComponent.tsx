@@ -79,7 +79,11 @@ interface TrafficSign {
 }
 
 interface RoadGameComponentProps {
-  onAnswerQuestion: (correct: boolean, question: Question) => void;
+  onAnswerQuestion: (
+    correct: boolean,
+    question: Question,
+    questionScore: string
+  ) => void;
   gameSpeed?: number;
   paused?: boolean;
   onQuestionShow?: () => void;
@@ -302,7 +306,11 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           currentSign.question.explanation || "No explanation available",
       };
 
-      onAnswerQuestion(isCorrect, quizQuestion);
+      onAnswerQuestion(
+        isCorrect,
+        quizQuestion,
+        currentSign?.question?.metadata?.score
+      );
     }
     setShowPopup(false);
     setCurrentQuestion(null);

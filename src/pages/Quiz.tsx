@@ -105,7 +105,7 @@ const Quiz: React.FC = () => {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [distance, setDistance] = useState(0);
+  // const [distance, setDistance] = useState(0);
   const [gameSpeed, setGameSpeed] = useState(10); // Increased from 8 to 12
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState<boolean | null>(
     null
@@ -126,28 +126,11 @@ const Quiz: React.FC = () => {
   }, [gameStarted, firstSignSpawned, gameOver]);
 
   // Increase distance over time
-  useEffect(() => {
-    if (!gameStarted || gameOver || questionActive) return; // Pause distance counter when question is active
-
-    const distanceInterval = setInterval(() => {
-      setDistance((prev) => prev + 1);
-
-      // Increase speed more quickly over time
-      if (distance > 0 && distance % 200 === 0) {
-        // Reduced from 300 to 200
-        setGameSpeed((prev) => Math.min(prev + 3, 25)); // Increased increment from 2 to 3, max from 20 to 25
-        toast.info("Speed increasing! Stay alert!");
-      }
-    }, 100);
-
-    return () => clearInterval(distanceInterval);
-  }, [gameStarted, gameOver, distance, questionActive]);
 
   const handleStartGame = () => {
     setGameStarted(true);
     setGameOver(false);
     setScore(0);
-    setDistance(0);
     setLives(3);
     setGameSpeed(10); // Increased from 8 to 12
     setLastAnswerCorrect(null);
@@ -160,13 +143,17 @@ const Quiz: React.FC = () => {
     toast.error("Game Over! Drive safely next time!");
   };
 
-  const handleAnswerQuestion = (correct: boolean, question: Question) => {
-    console.log("correct", correct);
+  const handleAnswerQuestion = (
+    correct: boolean,
+    question: Question,
+    questionScore: string
+  ) => {
+    console.log("questionScore", questionScore);
     // Question is no longer active
     setQuestionActive(false);
 
     if (correct) {
-      setScore((prev) => prev + 100);
+      setScore((prev) => prev + Number(questionScore));
       setLastAnswerCorrect(true);
       toast.success("Correct decision!");
     } else {
@@ -218,11 +205,11 @@ const Quiz: React.FC = () => {
                 {gameOver ? (
                   <>
                     <p className="text-muted-foreground mb-6">
-                      You scored {score} points and traveled {distance} meters!
+                      You scored {score} points!
                     </p>
-                    <div className="text-3xl font-bold mb-8">
+                    {/* <div className="text-3xl font-bold mb-8">
                       {Math.round((score / (distance * 2)) * 100)}% Rating
-                    </div>
+                    </div> */}
                   </>
                 ) : (
                   <p className="text-muted-foreground mb-6">
