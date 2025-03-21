@@ -223,7 +223,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         {/* Traffic Sign (on the side of the road) */}
         {currentSign && (
           <motion.div
-            className='absolute w-12 h-12 bg-red-600 text-white flex items-center justify-center rounded-full font-bold z-10'
+            className='absolute w-12 h-12 bg-red-600 text-white flex items-center justify-center rounded-full font-bold z-10 shadow-lg border-2 border-white'
             style={{
               left: '10%',
               top: currentSign.position,
@@ -244,7 +244,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         {/* Car */}
         <motion.div
-          className='absolute bottom-6 w-16 h-24 bg-blue-500 rounded-md z-10'
+          className='absolute bottom-6 w-16 h-24 bg-blue-500 rounded-md z-10 shadow-lg'
           animate={{
             left: carPosition,
             x: '-50%'
