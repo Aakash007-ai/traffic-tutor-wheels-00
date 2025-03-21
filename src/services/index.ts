@@ -67,7 +67,7 @@ const quizService = () => {
     questions: QuestionData[],
     ssId: number,
     level: number = 1,
-    userId: string = "88989-dsfds-34342-sdfsdfsdjkjhjj" // Default value for backward compatibility
+    userId: string // Default value for backward compatibility
   ) => {
     const fetchAccessToken = () => {
       const cookies = document.cookie.split("; ");
