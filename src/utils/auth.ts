@@ -9,7 +9,7 @@
 export const isLoggedIn = (): boolean => {
   // Get all cookies
   const cookies = document.cookie.split(';');
-  
+
   // Look for the accessToken cookie
   for (const cookie of cookies) {
     const [name, value] = cookie.trim().split('=');
@@ -17,7 +17,7 @@ export const isLoggedIn = (): boolean => {
       return true;
     }
   }
-  
+
   return false;
 };
 
@@ -28,7 +28,7 @@ export const isLoggedIn = (): boolean => {
 export const getAccessToken = (): string | null => {
   // Get all cookies
   const cookies = document.cookie.split(';');
-  
+
   // Look for the accessToken cookie
   for (const cookie of cookies) {
     const [name, value] = cookie.trim().split('=');
@@ -36,7 +36,7 @@ export const getAccessToken = (): string | null => {
       return value;
     }
   }
-  
+
   return null;
 };
 
