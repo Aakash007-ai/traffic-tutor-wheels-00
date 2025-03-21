@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Phone, KeyRound, ArrowRight } from 'lucide-react';
+import { Home, Phone, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { isLoggedIn } from '@/utils/auth';
 
 export default function UserAuth() {
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
+  const [otpValues, setOtpValues] = useState(['', '', '', '']);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Check if user is already logged in
   useEffect(() => {
@@ -18,6 +19,51 @@ export default function UserAuth() {
       navigate('/quiz');
     }
   }, [navigate]);
+
+  // Handle OTP input changes
+  const handleOtpChange = (index, value) => {
+    // Only allow numbers
+    if (!/^\d*$/.test(value)) return;
+
+    // Update the OTP value at the specified index
+    const newOtpValues = [...otpValues];
+    newOtpValues[index] = value.slice(0, 1); // Only take the first character
+    setOtpValues(newOtpValues);
+
+    // Auto-focus next input if current input is filled
+    if (value && index < 3) {
+      otpRefs[index + 1].current.focus();
+    }
+  };
+
+  // Handle backspace key in OTP inputs
+  const handleKeyDown = (index, e) => {
+    // If backspace is pressed and current field is empty, focus previous field
+    if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
+      otpRefs[index - 1].current.focus();
+    }
+  };
+
+  // Handle paste event for OTP
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+
+    // Check if pasted data is a number and has a reasonable length
+    if (!/^\d+$/.test(pastedData)) return;
+
+    // Fill in the OTP fields with the pasted data
+    const newOtpValues = [...otpValues];
+    for (let i = 0; i < Math.min(pastedData.length, 4); i++) {
+      newOtpValues[i] = pastedData[i];
+    }
+    setOtpValues(newOtpValues);
+
+    // Focus the appropriate field
+    if (pastedData.length < 4) {
+      otpRefs[pastedData.length].current.focus();
+    }
+  };
 
   const sendOtp = async () => {
     setLoading(true);
@@ -48,6 +94,17 @@ export default function UserAuth() {
   const verifyOtp = async () => {
     setLoading(true);
     setError('');
+
+    // Combine the OTP values into a single string
+    const otpString = otpValues.join('');
+
+    // Validate OTP
+    if (otpString.length !== 4) {
+      setError('Please enter a valid 4-digit OTP');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(
         'https://cosmonaut.qac24svc.dev/api/v1/otp/verify',
@@ -59,7 +116,7 @@ export default function UserAuth() {
             client_secret: 'AM0Bt2qY7Zqx69RQkxQrAdLXLdrdbjq6',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ mobileNumber: phone, otp: otp })
+          body: JSON.stringify({ mobileNumber: phone, otp: otpString })
         }
       );
       if (!response.ok) throw new Error('Invalid OTP');
@@ -277,19 +334,30 @@ export default function UserAuth() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
               >
-                <div className='relative'>
-                  <KeyRound className='absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 h-5 w-5' />
-                  <input
-                    type='text'
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder='Enter verification code'
-                    className='glass-input w-full py-3 md:py-4 pl-12 rounded-lg text-white bg-white/5 border-white/10 focus:border-blue-500/50 placeholder-white/50'
-                  />
+                <div className='mb-4'>
+                  <div
+                    className='flex justify-center gap-3'
+                    onPaste={handlePaste}
+                  >
+                    {[0, 1, 2, 3].map((index) => (
+                      <input
+                        key={index}
+                        ref={otpRefs[index]}
+                        type='text'
+                        maxLength={1}
+                        value={otpValues[index]}
+                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(index, e)}
+                        aria-label={`OTP digit ${index + 1}`}
+                        placeholder='•'
+                        className='glass-input w-12 h-14 text-center text-xl font-bold rounded-lg text-white bg-white/5 border-white/10 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/30'
+                      />
+                    ))}
+                  </div>
                 </div>
                 <button
                   onClick={verifyOtp}
-                  disabled={loading}
+                  disabled={loading || otpValues.join('').length !== 4}
                   className='w-full mt-4 bg-[#22c55e] hover:bg-green-600 text-white py-3 md:py-4 rounded-full font-bold transition-all transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center'
                 >
                   {loading ? (
