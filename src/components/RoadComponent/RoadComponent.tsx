@@ -4,15 +4,17 @@ import './RoadComponent.css';
 
 export interface IRoadComponentProp {
     direction?: 'left' | 'right' | 'up' | 'down';
+    right?: boolean;
 }
 
 // Define the exposed methods for ref
 export interface RoadComponentRef {
     toggleHeadlight: () => void;
 }
+const rightPos = 100;
 
 // Ref-enabled RoadComponent
-const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up' }, ref) => {
+const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up', right = false }, ref) => {
     const mainState = {
         canvas: null,
         ctx: null,
@@ -87,7 +89,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
         mainState.signCtx.fillRect(100, 10, 40, 100);
         drawBg();
         draw();
-        keyDown({ keyCode: 38, preventDefault: () => { } });
+        keyDown({ keyCode: 999, preventDefault: () => { } });
     }, []);
 
     useImperativeHandle(ref, () => ({
@@ -136,7 +138,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
         // Adjust X position based on perspective
         const startX = ((basePos + min) / 2) - (mainState.state.currentCurve * 3) - 80;
         const centerX = mainState.canvas.width / 2;
-        const xPos = startX +30;
+        const xPos = startX +30 + (right ? rightPos : 0);
         
         if (mainState.state.speed > 0) {
             mainState.state.poleY += mainState.state.speed * 0.5;
@@ -317,7 +319,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
             mainState.state.keypress.left = isKeyDown;
         }
 
-        if (e.keyCode === 38) {
+        if (e.keyCode === 999) {
             mainState.state.keypress.up = isKeyDown;
         }
 
@@ -325,7 +327,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
             mainState.state.keypress.right = isKeyDown;
         }
 
-        if (e.keyCode === 40) {
+        if (e.keyCode === 990) {
             mainState.state.keypress.down = isKeyDown;
         }
     }
