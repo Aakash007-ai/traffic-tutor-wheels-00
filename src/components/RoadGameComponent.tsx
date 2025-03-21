@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import CarComponent, { CarComponentRef } from './CarComponent/CarComponent';
 
 interface Question {
   text: string;
@@ -43,6 +44,8 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   const [carLane, setCarLane] = useState(1); // 0: left, 1: center, 2: right
   const [signSpeed, setSignSpeed] = useState(gameSpeed); // Track sign speed separately
 
+  const carRef = useRef<CarComponentRef>(null);
+
   // Calculate car position based on lane
   const carPositions = ['25%', '50%', '75%'];
   const carPosition = carPositions[carLane];
@@ -58,6 +61,9 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     if (!showPopup && gameActive) {
       setCarLane((prev) => Math.min(2, prev + 1));
     }
+  };
+  const toggleHeadlight = () => {
+    carRef?.current?.toggleHeadlight();
   };
 
   // Update sign speed when game speed changes
@@ -92,7 +98,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         // Check if sign is approaching the car (stop before reaching the car)
         if (newPosition >= 200 && newPosition < 220) {
-          setShowPopup(true);
+          //setShowPopup(true);
           setCurrentQuestion(currentSign.question);
           setCurrentSign({ ...currentSign, position: newPosition });
           // Notify parent component that a question is being shown
@@ -244,24 +250,15 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         {/* Car */}
         <motion.div
-          className='absolute bottom-6 w-16 h-24 bg-blue-500 rounded-md z-10 shadow-lg'
+          className='absolute bottom-6'
           animate={{
             left: carPosition,
             x: '-50%'
           }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
+          <CarComponent ref={carRef} />
           {/* Car windows */}
-          <div className='absolute top-1 left-1 right-1 h-1/3 bg-blue-200/30 rounded-t-sm'></div>
-          <div className='absolute top-[40%] left-1 right-1 h-[15%] bg-blue-200/30'></div>
-
-          {/* Car lights */}
-          <div className='absolute bottom-1 left-2 w-2 h-2 rounded-full bg-red-500'></div>
-          <div className='absolute bottom-1 right-2 w-2 h-2 rounded-full bg-red-500'></div>
-
-          {/* Car wheels */}
-          <div className='absolute bottom-0 left-0 w-3 h-6 bg-black -translate-x-1 translate-y-1 rounded-l-md'></div>
-          <div className='absolute bottom-0 right-0 w-3 h-6 bg-black translate-x-1 translate-y-1 rounded-r-md'></div>
         </motion.div>
       </div>
 
@@ -280,6 +277,14 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           disabled={showPopup || !gameActive || carLane === 2}
         >
           Right
+        </button>
+
+        <button
+          onClick={toggleHeadlight}
+          className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors'
+          disabled={showPopup || !gameActive || carLane === 2}
+        >
+          Headlight
         </button>
       </div>
 

@@ -1,0 +1,47 @@
+.car,
+.enemyCar {
+    width: 50px;
+    height: 100px;
+    background-image: url("../../assets/images/car1.png");
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+car-container {
+    display: flex;
+}
+.up {
+    transform: rotate(180deg);
+}
+.down {
+    transform: rotate(0deg);
+}
+.left {
+    transform: rotate(90deg);
+}
+.right {
+    transform: rotate(270deg);
+}
+
+.torchlight {
+    width: 50px;
+    height: 200px;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 0, 0.8) 5%,
+            rgba(255, 255, 0, 0.3) 30%,
+            rgba(255, 255, 0, 0.1) 60%,
+            rgba(255, 255, 0, 0) 80%);
+    /* Smooth fading to transparency */
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    position: absolute;
+    filter: blur(10px);
+    border-radius: 150px;
+    /* Soft glow effect */
+}
+.torchlight-left {
+    right: 30%;
+}
+.torchlight-right {
+    left: 30%;
+}
