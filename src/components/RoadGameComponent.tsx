@@ -162,7 +162,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   return (
     <div className='flex flex-col items-center justify-center w-full'>
       {/* Road Container */}
-      <div className='relative w-full h-96 overflow-hidden border-4 border-gray-700 rounded-lg'>
+      <div className='relative w-full h-[600px] overflow-hidden border-4 border-gray-700 rounded-lg'>
         {/* Background */}
         <div className='absolute inset-0 bg-gray-800'>
           {/* Left Green Strip */}
