@@ -4,6 +4,31 @@ import { quizAppi } from "@/services";
 import CarComponent, { CarComponentRef } from "./CarComponent/CarComponent";
 
 import ZebraCrossing from "./ui/ZebraCrossing";
+import compulsoryTurnLeft from "./../assets/signs/compulsoryTurnLeft.png";
+import endOfSpeedRestriction from "./../assets/signs/endOfSpeedRestriction.png";
+import giveWay from "./../assets/signs/giveWay.png";
+import guardedLevelCross from "./../assets/signs/guardedLevelCross.png";
+import oneWay from "./../assets/signs/oneWay.png";
+import parkingOnTheRightAllowed from "./../assets/signs/parkingOnTheRightAllowed.png";
+import pedestrianCrossing from "./../assets/signs/pedestrianCrossing.png";
+import redLight from "./../assets/signs/redLight.png";
+import rightTurnProhibited from "./../assets/signs/rightTurnProhibited.png";
+import stop from "./../assets/signs/stop.png";
+import zebraLines from "./../assets/signs/zebraLines.png";
+
+const signImages = {
+  "compulsoryTurnLeft.png": compulsoryTurnLeft,
+  "endOfSpeedRestriction.png": endOfSpeedRestriction,
+  "giveWay.png": giveWay,
+  "guardedLevelCross.png": guardedLevelCross,
+  "oneWay.png": oneWay,
+  "parkingOnTheRightAllowed.png": parkingOnTheRightAllowed,
+  "pedestrianCrossing.png": pedestrianCrossing,
+  "redLight.png": redLight,
+  "rightTurnProhibited.png": rightTurnProhibited,
+  "stop.png": stop,
+  "zebraLines.png": zebraLines,
+};
 
 interface Question {
   text: string;
@@ -204,6 +229,10 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     fetchQuestions();
   }, []);
 
+  const getSignImages = (type) => {
+    console.log("type", type);
+    return signImages[type] || null; // Returns the image if found, otherwise null
+  };
   return (
     <div className="flex flex-col items-center justify-center w-full">
       {/* Road Container */}
@@ -267,7 +296,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         {/* Traffic Sign (on the side of the road) */}
         {currentSign &&
-          (currentSign.type === "ZebraCrossing" ? (
+          (currentSign?.question.metadata?.imageFile === "zebraLines.png" ? (
             <motion.div
               className="absolute left-[15%] right-[15%]"
               style={{
@@ -280,22 +309,21 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
             </motion.div>
           ) : (
             <motion.div
-              className="absolute w-12 h-12 bg-red-600 text-white flex items-center justify-center rounded-full font-bold z-10 shadow-lg border-2 border-white"
+              className="absolute w-12 h-12  text-white flex items-center justify-center rounded-full font-bold z-10"
               style={{
-                left: "10%",
+                left:
+                  currentSign?.question?.metadata?.position === "LEFT"
+                    ? "7%"
+                    : "93%",
                 top: currentSign.position,
                 transform: "translateX(-50%)",
               }}
             >
-              {currentSign.imageUrl ? (
-                <img
-                  src={currentSign.imageUrl}
-                  alt={currentSign.type}
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <span>{currentSign.type.charAt(0).toUpperCase()}</span>
-              )}
+              <img
+                src={getSignImages(currentSign?.question.metadata?.imageFile)}
+                alt={currentSign.type}
+                // className="w-full h-full object-contain"
+              />
             </motion.div>
           ))}
 
@@ -356,7 +384,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
             {currentQuestion.options.map((option, index) => (
               <button
                 key={index}
-                onClick={() => handleAnswer(index)}
+                onClick={() => handleAnswer(option?.sequence)}
                 className="px-4 py-2 text-white rounded transition-colors bg-blue-600 hover:bg-blue-700"
               >
                 {option.toolTip}
