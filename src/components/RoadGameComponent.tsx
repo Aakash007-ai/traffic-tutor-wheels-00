@@ -633,16 +633,16 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
             <p className="text-xl font-medium text-green-900 mb-3">
               {currentQuestion?.name}
             </p>
-            {/* <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900">
+            <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900">
               {questionTimer}s
-            </div> */}
+            </div>
           </div>
-          <div className="w-full bg-gray-300 h-2 mb-4 rounded-full overflow-hidden">
+          {/* <div className="w-full bg-gray-300 h-2 mb-4 rounded-full overflow-hidden">
             <div
               className="bg-green-600 h-full transition-all duration-1000 ease-linear"
               style={{ width: `${(questionTimer / 30) * 100}%` }}
             ></div>
-          </div>
+          </div> */}
           <div className="flex flex-col gap-2">
             {currentQuestion.options.map((option, index) => (
               <OptionItem
