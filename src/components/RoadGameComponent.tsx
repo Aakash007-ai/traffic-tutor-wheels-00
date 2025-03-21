@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { quizAppi } from "@/services";
 import CarComponent, { CarComponentRef } from "./CarComponent/CarComponent";
 
+import ZebraCrossing from "./ui/ZebraCrossing";
+
 interface Question {
   text: string;
   options: {
@@ -13,7 +15,7 @@ interface Question {
 }
 
 interface TrafficSign {
-  type: "stop" | "yield" | "speed" | "school" | "pedestrian";
+  type: "stop" | "yield" | "speed" | "school" | "pedestrian" | "ZebraCrossing";
   position: number;
   question: Question;
   imageUrl?: string;
@@ -130,12 +132,10 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
             );
             console.log("questions####", questions);
             setCurrentSign({
-              type: "stop",
-              position: 100,
+              type: "ZebraCrossing",
+              position: -100,
               speed: signSpeed, // Use the current sign speed
               question: questions[index],
-              imageUrl:
-                "https://icon2.cleanpng.com/20180816/xcu/5a6e3b53a474dd00ce1a00e12a475d4e.webp",
             });
 
             setIndex((prevIndex) => (prevIndex + 1) % questions.length);
@@ -266,26 +266,38 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         </div>
 
         {/* Traffic Sign (on the side of the road) */}
-        {currentSign && (
-          <motion.div
-            className="absolute w-12 h-12 bg-red-600 text-white flex items-center justify-center rounded-full font-bold z-10 shadow-lg border-2 border-white"
-            style={{
-              left: "10%",
-              top: currentSign.position,
-              transform: "translateX(-50%)",
-            }}
-          >
-            {currentSign.imageUrl ? (
-              <img
-                src={currentSign.imageUrl}
-                alt={currentSign.type}
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <span>{currentSign.type.charAt(0).toUpperCase()}</span>
-            )}
-          </motion.div>
-        )}
+        {currentSign &&
+          (currentSign.type === "ZebraCrossing" ? (
+            <motion.div
+              className="absolute left-[15%] right-[15%]"
+              style={{
+                left: "15%",
+                right: "15%",
+                top: currentSign.position,
+              }}
+            >
+              <ZebraCrossing />
+            </motion.div>
+          ) : (
+            <motion.div
+              className="absolute w-12 h-12 bg-red-600 text-white flex items-center justify-center rounded-full font-bold z-10 shadow-lg border-2 border-white"
+              style={{
+                left: "10%",
+                top: currentSign.position,
+                transform: "translateX(-50%)",
+              }}
+            >
+              {currentSign.imageUrl ? (
+                <img
+                  src={currentSign.imageUrl}
+                  alt={currentSign.type}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span>{currentSign.type.charAt(0).toUpperCase()}</span>
+              )}
+            </motion.div>
+          ))}
 
         {/* Car */}
         <motion.div
