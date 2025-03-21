@@ -10,7 +10,7 @@ import Simulation from './pages/Simulation';
 import NotFound from './pages/NotFound';
 import { ProctoringSystem } from "./components/Proctoring";
 import { ProctorTestScreen } from "./components/ProctoringTest";
-import Test from './pages/Test';
+// import Test from './pages/Test';
 // import Proctor from "./pages/proctor";
 
 const queryClient = new QueryClient();
@@ -27,8 +27,7 @@ const App = () => (
           <Route path='/quiz' element={<Quiz />} />
           <Route path='/simulation' element={<Simulation />} />
           <Route path="/proctor" element={<ProctorTestScreen />} />
-          <Route path='/test' element={<Test />} />
-          <Route path="/proctor" element={<ProctorTestScreen />} />
+          {/* <Route path='/test' element={<Test />} /> */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path='*' element={<NotFound />} />
         </Routes>
