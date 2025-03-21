@@ -260,7 +260,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         const newPosition = currentSign.position + currentSign.speed;
 
         // Check if sign is approaching the car (stop before reaching the car)
-        if (newPosition >= 200 && newPosition < 220) {
+        if (newPosition >= 300 && newPosition < 320) {
           setShowPopup(true);
           setCurrentQuestion(currentSign.question);
           setCurrentSign({ ...currentSign, position: newPosition });

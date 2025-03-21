@@ -10,7 +10,7 @@ import Simulation from "./pages/Simulation";
 import NotFound from "./pages/NotFound";
 import UserAuth from "./pages/login";
 // import Test from './pages/test';
-import SecondStage from './pages/SecondStage';
+import SecondStage from "./pages/SecondStage";
 
 const queryClient = new QueryClient();
 
@@ -18,7 +18,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner position="bottom-right" />
+      <Sonner position="top-right" />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
