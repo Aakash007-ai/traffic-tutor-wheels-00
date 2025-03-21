@@ -15,6 +15,7 @@ interface TrafficSign {
   position: number;
   question: Question;
   imageUrl?: string;
+  speed: number; // Store the speed at which the sign should move
 }
 
 interface RoadGameComponentProps {
@@ -23,12 +24,13 @@ interface RoadGameComponentProps {
   gameSpeed?: number;
   paused?: boolean;
   onQuestionShow?: () => void;
+  initialSign?: boolean; // Flag to spawn a sign immediately
 }
 
 const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   onAnswerQuestion,
   questions,
-  gameSpeed = 5,
+  gameSpeed = 10,
   paused = false,
   onQuestionShow
 }) => {
@@ -36,9 +38,10 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   const [currentSign, setCurrentSign] = useState<TrafficSign | null>(null);
   const [showPopup, setShowPopup] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [signSpawnTimer, setSignSpawnTimer] = useState(0);
+  const [signSpawnTimer, setSignSpawnTimer] = useState(40); // Start with a higher value to spawn sign sooner
   const [gameActive, setGameActive] = useState(true);
   const [carLane, setCarLane] = useState(1); // 0: left, 1: center, 2: right
+  const [signSpeed, setSignSpeed] = useState(gameSpeed); // Track sign speed separately
 
   // Calculate car position based on lane
   const carPositions = ['25%', '50%', '75%'];
@@ -56,6 +59,13 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
       setCarLane((prev) => Math.min(2, prev + 1));
     }
   };
+
+  // Update sign speed when game speed changes
+  useEffect(() => {
+    if (!currentSign) {
+      setSignSpeed(gameSpeed);
+    }
+  }, [gameSpeed, currentSign]);
 
   // Keyboard controls
   useEffect(() => {
@@ -78,7 +88,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
       // Move current sign if it exists
       if (currentSign) {
-        const newPosition = currentSign.position + gameSpeed;
+        const newPosition = currentSign.position + currentSign.speed;
 
         // Check if sign is approaching the car (stop before reaching the car)
         if (newPosition >= 200 && newPosition < 220) {
@@ -99,9 +109,10 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           setCurrentSign({ ...currentSign, position: newPosition });
         }
       } else {
-        // Spawn new sign after a delay
+        // Spawn new sign after a shorter delay
         setSignSpawnTimer((prev) => {
-          if (prev > 100) {
+          if (prev > 50) {
+            // Reduced from 100 to 50 for more frequent signs
             // Spawn a new sign
             const randomQuestionIndex = Math.floor(
               Math.random() * questions.length
@@ -110,6 +121,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
             setCurrentSign({
               type: 'stop',
               position: -100,
+              speed: signSpeed, // Use the current sign speed
               question: questions[randomQuestionIndex],
               imageUrl:
                 'https://icon2.cleanpng.com/20180816/xcu/5a6e3b53a474dd00ce1a00e12a475d4e.webp'
@@ -126,6 +138,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   }, [
     currentSign,
     gameSpeed,
+    signSpeed,
     paused,
     questions,
     gameActive,
