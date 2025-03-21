@@ -252,14 +252,6 @@ const Quiz: React.FC = () => {
 
                 <Card glass className="py-3">
                   <div className="flex flex-col items-center">
-                    <Car className="h-5 w-5 text-primary mb-1" />
-                    <p className="text-xs text-muted-foreground">DISTANCE</p>
-                    <p className="font-bold">{distance}m</p>
-                  </div>
-                </Card>
-
-                <Card glass className="py-3">
-                  <div className="flex flex-col items-center">
                     <Heart className="h-5 w-5 text-red-500 mb-1" />
                     <p className="text-xs text-muted-foreground">LIVES</p>
                     <div className="flex">
