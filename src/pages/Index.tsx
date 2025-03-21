@@ -51,6 +51,13 @@ const Index = () => {
               >
                 Take a Quiz <BookOpen className="h-4 w-4" />
               </Button>
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/proctor')}
+                className="font-medium gap-2"
+              >
+                Proctor <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </AnimatedTransition>
           

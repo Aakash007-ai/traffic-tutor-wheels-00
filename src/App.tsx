@@ -9,6 +9,9 @@ import Dashboard from "./pages/Dashboard";
 import Quiz from "./pages/Quiz";
 import Simulation from "./pages/Simulation";
 import NotFound from "./pages/NotFound";
+import { ProctoringSystem } from "./components/Proctoring";
+import { ProctorTestScreen } from "./components/ProctoringTest";
+// import Proctor from "./pages/proctor";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +26,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/simulation" element={<Simulation />} />
+          <Route path="/proctor" element={<ProctorTestScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -30,5 +34,7 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+
 
 export default App;
