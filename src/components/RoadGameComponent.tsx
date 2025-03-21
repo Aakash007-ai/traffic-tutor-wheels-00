@@ -64,7 +64,7 @@ const sampleQuestion = {
 };
 
 // Define the structure of the API response
-interface ApiQuestionData {
+export interface ApiQuestionData {
   name: string;
   options: {
     toolTip: string;
@@ -94,7 +94,7 @@ interface GameQuestion {
 }
 
 // Import Question interface from Quiz component
-interface Question {
+export interface Question {
   text: string;
   options: {
     text: string;
