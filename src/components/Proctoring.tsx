@@ -15,7 +15,7 @@ export const ProctoringSystem = () => {
         detectTabSwitching();
         detectFullscreenExit();
         // checkMultipleMonitors();
-        // startAudioMonitoring();
+        startAudioMonitoring();
     }, []);
 
     // Load PoseNet for gaze tracking
@@ -106,24 +106,24 @@ export const ProctoringSystem = () => {
     };
 
     // Audio Monitoring for Background Noise
-    // const startAudioMonitoring = () => {
-    //     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-    //         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    //         const analyser = audioContext.createAnalyser();
-    //         const source = audioContext.createMediaStreamSource(stream);
-    //         source.connect(analyser);
-    //         analyser.fftSize = 512;
-    //         const bufferLength = analyser.frequencyBinCount;
-    //         const dataArray = new Uint8Array(bufferLength);
-    //         setInterval(() => {
-    //             analyser.getByteFrequencyData(dataArray);
-    //             const averageVolume = dataArray.reduce((a, b) => a + b) / bufferLength;
-    //             if (averageVolume > 50) {
-    //                 swal("Background Noise Detected!", "Please stay in a quiet environment.", "error");
-    //             }
-    //         }, 3000);
-    //     });
-    // };
+    const startAudioMonitoring = () => {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 512;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            setInterval(() => {
+                analyser.getByteFrequencyData(dataArray);
+                const averageVolume = dataArray.reduce((a, b) => a + b) / bufferLength;
+                if (averageVolume > 50) {
+                    swal("Background Noise Detected!", "Please stay in a quiet environment.", "error");
+                }
+            }, 3000);
+        });
+    };
 
     return (
         <div>
@@ -133,113 +133,3 @@ export const ProctoringSystem = () => {
         </div>
     );
 };
-
-// import React, { useState, useEffect, useRef } from "react";
-// import Webcam from "react-webcam";
-// import swal from "sweetalert";
-
-// export const ProctoringSystem = () => {
-//     const webcamRef = useRef(null);
-//     const [setupStep, setSetupStep] = useState(0);
-//     const [isMonitoring, setIsMonitoring] = useState(false);
-
-//     // Proctoring Setup Steps
-//     const setupSteps = [
-//         {
-//             title: "Webcam Access",
-//             action: async () => {
-//                 try {
-//                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//                     webcamRef.current.srcObject = stream;
-//                     return true;
-//                 } catch (error) {
-//                     swal("Webcam Required!", "Please enable camera access to continue", "error");
-//                     return false;
-//                 }
-//             }
-//         },
-//         {
-//             title: "Screen Sharing",
-//             action: async () => {
-//                 try {
-//                     await navigator.mediaDevices.getDisplayMedia({ video: true });
-//                     return true;
-//                 } catch (error) {
-//                     swal("Screen Sharing Required!", "Please share your entire screen", "error");
-//                     return false;
-//                 }
-//             }
-//         },
-//         {
-//             title: "Fullscreen Mode",
-//             action: async () => {
-//                 try {
-//                     await document.documentElement.requestFullscreen();
-//                     return true;
-//                 } catch (error) {
-//                     swal("Fullscreen Required!", "Please enter fullscreen mode", "error");
-//                     return false;
-//                 }
-//             }
-//         }
-//     ];
-
-//     // Start Setup Process
-//     const startProctoringSetup = async () => {
-//         for (let step of setupSteps) {
-//             const success = await step.action();
-//             if (!success) return;
-//             setSetupStep(prev => prev + 1);
-//         }
-//         showProctoringTips();
-//         setIsMonitoring(true);
-//     };
-
-//     // Display Proctoring Guidelines
-//     const showProctoringTips = () => {
-//         swal({
-//             title: "Proctoring Guidelines",
-//             text: "1. Stay in frame throughout the exam\n2. No secondary devices\n3. No talking/whispering\n4. Keep browser tab active",
-//             icon: "info"
-//         });
-//     };
-
-//     // Tab Switching Detection
-//     useEffect(() => {
-//         const handleVisibilityChange = () => {
-//             if (document.hidden && isMonitoring) {
-//                 swal("Tab Switch Detected!", "Return to exam immediately!", "error");
-//             }
-//         };
-
-//         document.addEventListener("visibilitychange", handleVisibilityChange);
-//         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-//     }, [isMonitoring]);
-
-//     return (
-//         <div className="proctoring-container">
-//             {!isMonitoring ? (
-//                 <div className="setup-wizard">
-//                     <h2>Exam Proctoring Setup ({setupStep + 1}/{setupSteps.length})</h2>
-//                     <p>{setupSteps[setupStep]?.title} Required</p>
-//                     <button onClick={startProctoringSetup}>
-//                         {setupStep === 0 ? "Begin Setup" : "Continue Setup"}
-//                     </button>
-//                 </div>
-//             ) : (
-//                 <div className="monitoring-screen">
-//                     <Webcam 
-//                         ref={webcamRef} 
-//                         style={{ width: "10%", height: "10%" }}
-//                         screenshotFormat="image/jpeg"
-//                     />
-//                     <div className="status-indicator">Monitoring Active</div>
-//                 </div>
-//             )}
-//         </div>
-//     );
-// };
-
-// export default ProctoringSystem;
-
-
