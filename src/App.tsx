@@ -28,6 +28,7 @@ const App = () => (
           <Route path='/simulation' element={<Simulation />} />
           <Route path="/proctor" element={<ProctorTestScreen />} />
           {/* <Route path='/test' element={<Test />} /> */}
+          <Route path="/proctor" element={<ProctorTestScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path='*' element={<NotFound />} />
         </Routes>
