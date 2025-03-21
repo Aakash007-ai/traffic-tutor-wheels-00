@@ -13,6 +13,7 @@ import { ProctoringSystem } from "./components/Proctoring";
 import { ProctorTestScreen } from "./components/ProctoringTest";
 // import Test from './pages/Test';
 // import Proctor from "./pages/proctor";
+import SecondStage from './pages/SecondStage';
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/simulation" element={<Simulation />} />
           <Route path="/proctor" element={<ProctorTestScreen />} />
           <Route path="/login" element={<UserAuth />} />
+          <Route path="/stage" element={<SecondStage />} />
           {/* <Route path='/test' element={<Test />} /> */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
