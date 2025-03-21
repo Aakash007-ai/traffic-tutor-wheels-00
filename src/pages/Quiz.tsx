@@ -119,7 +119,7 @@ const Quiz: React.FC = () => {
     if (gameStarted && !firstSignSpawned && !gameOver) {
       setFirstSignSpawned(true);
     }
-    
+
     if (!gameStarted) {
       setFirstSignSpawned(false);
     }
@@ -133,7 +133,8 @@ const Quiz: React.FC = () => {
       setDistance((prev) => prev + 1);
 
       // Increase speed more quickly over time
-      if (distance > 0 && distance % 200 === 0) { // Reduced from 300 to 200
+      if (distance > 0 && distance % 200 === 0) {
+        // Reduced from 300 to 200
         setGameSpeed((prev) => Math.min(prev + 3, 25)); // Increased increment from 2 to 3, max from 20 to 25
         toast.info('Speed increasing! Stay alert!');
       }
@@ -196,7 +197,7 @@ const Quiz: React.FC = () => {
     <div className='min-h-screen w-full bg-background pt-20 pb-16'>
       <Header />
 
-      <main className='container max-w-4xl mx-auto px-4'>
+      <main className='container max-w-7xl mx-auto px-4'>
         {!gameStarted || gameOver ? (
           <AnimatedTransition animation='scale'>
             <Card glass>
