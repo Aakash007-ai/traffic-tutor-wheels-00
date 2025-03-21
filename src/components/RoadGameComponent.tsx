@@ -15,6 +15,9 @@ import redLight from "./../assets/signs/redLight.png";
 import rightTurnProhibited from "./../assets/signs/rightTurnProhibited.png";
 import stop from "./../assets/signs/stop.png";
 import zebraLines from "./../assets/signs/zebraLines.png";
+import { QuizModal } from "./ui/quizModal";
+import { QuizQuestion } from "./ui/quizModal/types";
+import { OptionItem } from "./ui/quizModal/OptionItem";
 
 const signImages = {
   "compulsoryTurnLeft.png": compulsoryTurnLeft,
@@ -28,6 +31,36 @@ const signImages = {
   "rightTurnProhibited.png": rightTurnProhibited,
   "stop.png": stop,
   "zebraLines.png": zebraLines,
+};
+const sampleQuestion = {
+  id: "q1",
+  text: "What is the largest planet in our solar system?",
+  options: [
+    {
+      id: "opt1",
+      letter: "A",
+      text: "Jupiter",
+      color: "red",
+    },
+    {
+      id: "opt2",
+      letter: "B",
+      text: "Saturn",
+      color: "green",
+    },
+    {
+      id: "opt3",
+      letter: "C",
+      text: "Neptune",
+      color: "yellow",
+    },
+    {
+      id: "opt4",
+      letter: "D",
+      text: "Uranus",
+      color: "blue",
+    },
+  ],
 };
 
 // Define the structure of the API response
@@ -499,29 +532,31 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
       </div>
 
       {/* Question Popup */}
+
       {showPopup && currentQuestion && (
-        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-white p-6 rounded-lg shadow-lg text-center max-w-md w-full z-20">
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-lg font-bold">{currentQuestion?.name}</p>
-            <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium">
+        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-green-50/90 p-4 rounded-lg shadow-lg text-center max-w-md w-full z-20">
+          <div className="flex justify-between items-center ">
+            <p className="text-xl font-medium text-green-900 mb-3">
+              {currentQuestion?.name}
+            </p>
+            {/* <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900">
               {questionTimer}s
-            </div>
+            </div> */}
           </div>
           <div className="w-full bg-gray-300 h-2 mb-4 rounded-full overflow-hidden">
             <div
-              className="bg-blue-600 h-full transition-all duration-1000 ease-linear"
+              className="bg-green-600 h-full transition-all duration-1000 ease-linear"
               style={{ width: `${(questionTimer / 30) * 100}%` }}
             ></div>
           </div>
           <div className="flex flex-col gap-2">
             {currentQuestion.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswer(option?.sequence)}
-                className="px-4 py-2 text-white rounded transition-colors bg-blue-600 hover:bg-blue-700"
-              >
-                {option.toolTip}
-              </button>
+              <OptionItem
+                key={option.id}
+                option={option}
+                isSelected={false}
+                onSelect={() => handleAnswer(option?.sequence)}
+              />
             ))}
           </div>
         </div>
