@@ -286,6 +286,15 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         >
           Headlight
         </button>
+        <button
+          onMouseDown={() => carRef.current?.playHorn(true)}  // Start horn
+          onMouseUp={() => carRef.current?.playHorn(false)}  // Stop horn
+          onMouseLeave={() => carRef.current?.playHorn(false)}  // Stop if moved out
+          className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors'
+          disabled={showPopup || !gameActive || carLane === 2}
+        >
+          Horn
+        </button>
       </div>
 
       {/* Question Popup */}
