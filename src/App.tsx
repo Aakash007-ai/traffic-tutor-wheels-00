@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import UserAuth from "./pages/login";
 // import Test from './pages/test';
 import SecondStage from './pages/SecondStage';
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -23,9 +24,17 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/quiz" element={
+            <ProtectedRoute>
+              <Quiz />
+            </ProtectedRoute>
+          } />
           <Route path="/simulation" element={<Simulation />} />
-          <Route path="/login" element={<UserAuth />} />
+          <Route path="/login" element={
+            <ProtectedRoute requireAuth={false}>
+              <UserAuth />
+            </ProtectedRoute>
+          } />
           <Route path="/stage" element={<SecondStage />} />
           {/* <Route path='/test' element={<Test />} /> */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

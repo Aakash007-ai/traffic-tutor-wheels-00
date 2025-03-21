@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Home, Phone, KeyRound, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { isLoggedIn } from '@/utils/auth';
 
 export default function UserAuth() {
   const [phone, setPhone] = useState('');
@@ -10,6 +11,13 @@ export default function UserAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (isLoggedIn()) {
+      navigate('/quiz');
+    }
+  }, [navigate]);
 
   const sendOtp = async () => {
     setLoading(true);
