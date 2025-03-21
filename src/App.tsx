@@ -10,6 +10,7 @@ import Simulation from "./pages/Simulation";
 import NotFound from "./pages/NotFound";
 import UserAuth from "./pages/login";
 // import Test from './pages/test';
+import SecondStage from './pages/SecondStage';
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/simulation" element={<Simulation />} />
           <Route path="/login" element={<UserAuth />} />
+          <Route path="/stage" element={<SecondStage />} />
           {/* <Route path='/test' element={<Test />} /> */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
