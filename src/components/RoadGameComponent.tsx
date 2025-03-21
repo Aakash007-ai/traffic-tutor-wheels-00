@@ -98,7 +98,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         // Check if sign is approaching the car (stop before reaching the car)
         if (newPosition >= 200 && newPosition < 220) {
-          //setShowPopup(true);
+          setShowPopup(true);
           setCurrentQuestion(currentSign.question);
           setCurrentSign({ ...currentSign, position: newPosition });
           // Notify parent component that a question is being shown
