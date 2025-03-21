@@ -6,7 +6,7 @@ import { Heart, Zap, Trophy, Car } from "lucide-react";
 import { toast } from "sonner";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import RoadGameComponent from "@/components/RoadGameComponent";
-import { quizAppi } from "@/services";
+import { quizAppi } from "../services/index.js";
 
 // Define the GameQuestion interface to match RoadGameComponent
 interface GameQuestion {
@@ -67,6 +67,50 @@ const Quiz: React.FC = () => {
   const [highestModule1Score, setHighestModule1Score] = useState<number>(0);
   const [module2Unlocked, setModule2Unlocked] = useState<boolean>(false);
   const [ssId, setssId] = useState(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Fetch user data when component mounts
+  useEffect(() => {
+    const fetchUser = async () => {
+      const fetchAccessToken = () => {
+        const cookies = document.cookie.split("; ");
+        const accessTokenCookie = cookies.find((row) =>
+          row.startsWith("accessToken=")
+        );
+        return accessTokenCookie ? accessTokenCookie.split("=")[1] : null;
+      };
+
+      const token = fetchAccessToken();
+      if (!token) {
+        console.error("Access token not found");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://192.168.26.248:8091/api/v1/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data && data.id) {
+          setUserId(data.id);
+          console.log("User ID set:", data.id);
+        }
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   // Spawn first sign immediately when game starts
   useEffect(() => {
@@ -132,7 +176,13 @@ const Quiz: React.FC = () => {
       if (finalAnswers && finalAnswers.length > 0) {
         // Use different ssId and level based on the selected module
         const level = selectedModule === "Module1" ? 1 : 2;
-        await quizAppi.submitScoreFeedback(score, finalAnswers, ssId, level);
+        await quizAppi.submitScoreFeedback(
+          score,
+          finalAnswers,
+          ssId,
+          level,
+          userId || undefined
+        );
         console.log("Score and feedback submitted successfully");
       } else {
         console.warn("No answers to submit");

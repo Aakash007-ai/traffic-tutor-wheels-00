@@ -66,7 +66,8 @@ const quizService = () => {
     score: number,
     questions: QuestionData[],
     ssId: number,
-    level: number = 1
+    level: number = 1,
+    userId: string = "88989-dsfds-34342-sdfsdfsdjkjhjj" // Default value for backward compatibility
   ) => {
     const fetchAccessToken = () => {
       const cookies = document.cookie.split("; ");
@@ -98,9 +99,9 @@ const quizService = () => {
         feedbackRequestDto: {
           ssId: ssId,
           identifierId: "AI-SUMMIT-INVITATION",
-          userId: "88989-dsfds-34342-sdfsdfsdjkjhjj",
+          userId: userId,
           channel: "all",
-          feedbackGivenBy: "88989-dsfds-34342-sdfsdfsdjkjhjj",
+          feedbackGivenBy: userId,
           feedbackGivenByEntityType: "USER",
           answer: answers,
           identifierType: "ai-summit-invitation",
