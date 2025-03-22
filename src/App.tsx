@@ -26,13 +26,21 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/quiz" element={
             <ProtectedRoute>
               <Quiz />
             </ProtectedRoute>
           } />
-          <Route path="/simulation" element={<Simulation />} />
+          <Route path="/simulation" element={
+            <ProtectedRoute>
+              <Simulation />
+            </ProtectedRoute>
+          } />
           <Route path="/login" element={
             <ProtectedRoute requireAuth={false}>
               <UserAuth />

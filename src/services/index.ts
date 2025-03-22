@@ -1,13 +1,18 @@
 const BASE_API_URL =
   "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers";
 const SCORE_FEEDBACK_API_URL =
-  "http://192.168.27.85:8091/api/v1/submit/score-feedback";
+  "https://safeway-hackers-466060604919.us-central1.run.app/api/v1/submit/score-feedback";
 
-const CLUSTER_API_URL = "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers/SelfVehicleAwareness"
+const CLUSTER_API_URL =
+  "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers/SelfVehicleAwareness";
 
 const quizService = () => {
-  const getQuestions = async (module: string = "Module1") => {
-    const API_URL = `${BASE_API_URL}/${module}`;
+  const getQuestions = async (
+    module: string = "Module_1",
+    language: string = "ENGLISH"
+  ) => {
+    const currentModule = language === "ENGLISH" ? module : "Module1_Hindi";
+    const API_URL = `${BASE_API_URL}/${currentModule}`;
     try {
       const response = await fetch(API_URL, {
         method: "GET",
@@ -62,6 +67,7 @@ const quizService = () => {
     options: QuestionOption[];
     explanation?: string;
     validations?: unknown;
+    selectedOptionId?: number; // Track the selected option ID
   }
 
   const submitScoreFeedback = async (
@@ -82,11 +88,11 @@ const quizService = () => {
     try {
       // Transform questions into the format required by the API
       const answers = questions.map((question) => {
-        // Convert ans to string before parsing to ensure it works with both string and number types
-        const ansString = String(question.metadata.ans);
+        // Use the selectedOptionId if available, otherwise fall back to the answer from metadata
+        const optionId = question.selectedOptionId;
         return {
           questionId: question.id,
-          optionId: parseInt(ansString),
+          optionId: optionId,
           weightage: 1,
           comment: "",
           metadata: {},
@@ -136,7 +142,6 @@ const quizService = () => {
     }
   };
 
-
   const getClusterQuestions = async () => {
     try {
       const response = await fetch(CLUSTER_API_URL, {
@@ -156,17 +161,15 @@ const quizService = () => {
       console.error("Error fetching rating config:", error);
       throw error;
     }
-  }
-
+  };
 
   return {
     getQuestions,
     submitScoreFeedback,
-    getClusterQuestions
+    getClusterQuestions,
   };
 };
 
 const quizAppi = quizService();
 
 export default quizAppi;
-

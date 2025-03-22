@@ -12,6 +12,12 @@ import oneWay from "./../assets/signs/oneWay.png";
 import parkingOnTheRightAllowed from "./../assets/signs/parkingOnTheRightAllowed.png";
 import pedestrianCrossing from "./../assets/signs/pedestrianCrossing.png";
 import redLight from "./../assets/signs/redLight.png";
+import highway from "./../assets/signs/highway.jpg";
+import dr from "./../assets/signs/dr.jpg";
+import bike from "./../assets/signs/bike.jpg";
+
+import unregistered from "./../assets/signs/unregistered.jpg";
+import education from "./../assets/signs/education.jpg";
 import rightTurnProhibited from "./../assets/signs/rightTurnProhibited.png";
 import stop from "./../assets/signs/stop.png";
 import zebraLines from "./../assets/signs/zebraLines.png";
@@ -19,6 +25,7 @@ import { QuizModal } from "./ui/quizModal";
 import { QuizQuestion } from "./ui/quizModal/types";
 import { OptionItem } from "./ui/quizModal/OptionItem";
 import quizAppi from "@/services";
+import OptionsPopUp from "./OptionsPopUp/OptionsPopUp";
 
 const signImages = {
   "compulsoryTurnLeft.png": compulsoryTurnLeft,
@@ -32,6 +39,11 @@ const signImages = {
   "rightTurnProhibited.png": rightTurnProhibited,
   "stop.png": stop,
   "zebraLines.png": zebraLines,
+  "highway.jpg": highway,
+  "education.jpg": education,
+  "unregistered.jpg": unregistered,
+  "dr.jpg": dr,
+  "bike.jpg": bike,
 };
 const sampleQuestion = {
   id: "q1",
@@ -117,6 +129,7 @@ interface GameQuestion {
   type?: string;
   lang?: string;
   validations?: unknown;
+  selectedOptionId?: number; // Track the selected option ID
 }
 
 // Import Question interface from Quiz component
@@ -150,6 +163,7 @@ interface RoadGameComponentProps {
   setFinalAnswers: (questions: GameQuestion[]) => void;
   module?: string; // Add module prop
   setssId: (e: string) => void;
+  language?: string; // Add language prop
 }
 
 const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
@@ -158,8 +172,9 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   paused = false,
   onQuestionShow,
   setFinalAnswers,
-  module = "Module1",
+  module = "Module_1",
   setssId,
+  language = "ENGLISH",
 }) => {
   const [roadOffset, setRoadOffset] = useState(0);
   const [currentSign, setCurrentSign] = useState<TrafficSign | null>(null);
@@ -416,11 +431,22 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           currentSign.question.explanation || "No explanation available",
       };
 
-      // Add the question to answered questions
+      // Find the option with the matching sequence
+      const selectedOption = currentSign.question.options.find(
+        (opt) => opt.sequence === index
+      );
+
+      // Add the question with the selected option ID to answered questions
       if (currentSign) {
-        setAnsweredQuestions((prev) => [...prev, currentSign.question]);
+        // Create a copy of the question with the selected option ID
+        const questionWithSelection = {
+          ...currentSign.question,
+          selectedOptionId: selectedOption?.id || 0,
+        };
+
+        setAnsweredQuestions((prev) => [...prev, questionWithSelection]);
         // Update the finalAnswers in the parent component
-        setFinalAnswers([...answeredQuestions, currentSign.question]);
+        setFinalAnswers([...answeredQuestions, questionWithSelection]);
       }
 
       onAnswerQuestion(
@@ -441,8 +467,13 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        console.log("Fetching questions for module:", module);
-        const data = await quizAppi.getQuestions(module);
+        console.log(
+          "Fetching questions for module:",
+          module,
+          "language:",
+          language
+        );
+        const data = await quizAppi.getQuestions(module, language);
         // Cast the API response to our ApiQuestionData type for proper typing
         setssId(data?.data?.ssId);
         const questionsArray = Object.values(data?.data?.initialQuestions)
@@ -474,7 +505,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     };
 
     fetchQuestions();
-  }, [module]); // Re-fetch questions when module changes
+  }, [module, language]); // Re-fetch questions when module or language changes
 
   const getSignImages = (type: string) => {
     console.log("type", type);
@@ -625,8 +656,13 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
       </div>
 
       {/* Question Popup */}
-
       {showPopup && currentQuestion && (
+        <OptionsPopUp
+          currentQuestion={currentQuestion}
+          handleAnswer={handleAnswer}
+        />
+      )}
+      {/* {showPopup && currentQuestion && (
         <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-green-50/90 p-4 rounded-lg shadow-lg text-center max-w-md w-full z-20">
           <div className="flex justify-between items-center ">
             <p className="text-xl font-medium text-green-900 mb-3">
@@ -642,7 +678,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
               style={{ width: `${(questionTimer / 30) * 100}%` }}
             ></div>
           </div> */}
-          <div className="flex flex-col gap-2">
+      {/* <div className="flex flex-col gap-2">
             {currentQuestion.options.map((option, index) => (
               <OptionItem
                 key={option.id}
@@ -653,7 +689,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
             ))}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

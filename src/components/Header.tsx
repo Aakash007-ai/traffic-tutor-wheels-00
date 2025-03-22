@@ -27,8 +27,7 @@ export const Header: React.FC = () => {
     { name: 'Home', path: '/', icon: Car },
     { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
     { name: 'Quiz', path: '/quiz', icon: BookOpen },
-    { name: 'Lessons', path: '/simulation', icon: Gamepad },
-    userLoggedIn 
+    userLoggedIn
       ? { name: 'Logout', path: '#', icon: LogOut, onClick: handleLogout }
       : { name: 'Login', path: '/login', icon: User }
   ];
@@ -42,7 +41,10 @@ export const Header: React.FC = () => {
             className='font-fredoka text-white flex items-center gap-2'
           >
             <Car className='h-5 w-5 text-[#22c55e]' />
-            <span className='hidden sm:inline'>Safeway</span>
+            <span className='hidden sm:inline text-2xl font-semibold'>
+              <span className='text-white'>Safe</span>
+              <span className='text-[#22c55e]'>way</span>
+            </span>
           </Link>
 
           <div className='flex items-center'>

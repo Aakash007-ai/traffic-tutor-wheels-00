@@ -4,10 +4,11 @@ import { QuizOption } from "./types";
 interface OptionItemProps {
   option: QuizOption;
   isSelected: boolean;
+  isCorrect?: boolean;
   onSelect: (option: QuizOption) => void;
 }
 
-export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
+export function OptionItem({ option, isSelected, isCorrect = false, onSelect }: OptionItemProps) {
   // Determine letter based on sequence
   const getLetterBySequence = (sequence: number): string => {
     const letters = ["A", "B", "C", "D"];
@@ -33,15 +34,16 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
     <div className="option-item" data-option={letter}>
       <button
         className={`w-full flex items-center text-left hover:opacity-90 focus:outline-none transition-all rounded-md ${
-          isSelected ? "ring-2 ring-offset-2 ring-green-700" : ""
-        }`}
+          isCorrect ? "ring-2 ring-offset-2 ring-green-700" : ""
+        } ${isSelected && !isCorrect ? "ring-2 ring-offset-2 ring-red-700" : ""}`}
         onClick={() => onSelect(option)}
-        aria-pressed={isSelected}
       >
         <div
           className={`flex items-center ${colorClass} text-white rounded-l-md p-3 h-14 w-14 justify-center text-xl font-bold ${
-            isSelected
+            isCorrect
               ? "border-4 border-green-600"
+              : isSelected && !isCorrect
+              ? "border-4 border-red-600"
               : "border-2 border-gray-700"
           }`}
         >
@@ -49,8 +51,10 @@ export function OptionItem({ option, isSelected, onSelect }: OptionItemProps) {
         </div>
         <div
           className={`flex-1 p-3 rounded-r-md ${
-            isSelected
+            isCorrect
               ? "bg-blue-200 border-t-4 border-r-4 border-b-4 border-green-600"
+              : isSelected && !isCorrect
+              ? "bg-blue-100 border-t-4 border-r-4 border-b-4 border-red-600"
               : "bg-blue-100 border-t-2 border-r-2 border-b-2 border-gray-700"
           }`}
         >

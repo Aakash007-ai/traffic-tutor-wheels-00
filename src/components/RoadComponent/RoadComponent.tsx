@@ -1,5 +1,8 @@
 import React, { forwardRef, useState, useImperativeHandle, useRef, useEffect } from 'react';
 import './RoadComponent.css';
+import QuizController, { QuizControllerRef } from '../QuizController/QuizController';
+import { getImage } from '../QuizController/QuizControllerImage';
+import GameStats from '../GameStats/GameStats';
 
 
 export interface IRoadComponentProp {
@@ -9,13 +12,18 @@ export interface IRoadComponentProp {
 
 // Define the exposed methods for ref
 export interface RoadComponentRef {
-    turnLeft: (keyUp:boolean) => void;
-    turnRight: (keyUp:boolean) => void;
+    turnLeft: (keyUp: boolean) => void;
+    turnRight: (keyUp: boolean) => void;
 }
 const rightPos = 100;
+const NEXT_QUIZ_TIME = 3000;
 
 // Ref-enabled RoadComponent
-const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up', right = false }, ref) => {
+const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right = false }, ref) => {
+    const showPole = useRef(false);
+    const gameStatsRef = useRef(null);
+    const quizControllerRef = useRef<QuizControllerRef>(null);
+
     const mainState = {
         canvas: null,
         ctx: null,
@@ -67,12 +75,32 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
                 left: false,
                 right: false,
                 down: false
-            }
+            },
+            poleImage: new Image(),
+            isImageLoaded: false
         },
         storage: {
             bg: null
         }
     };
+
+    const reset = () => {
+        showPole.current = false;
+        mainState.state.poleY = 70;
+        // drawBg();
+        draw();
+        keyDown({ keyCode: 999, preventDefault: () => { } });
+        setTimeout(() => {
+            showPole.current = true;
+        }, NEXT_QUIZ_TIME);
+    };
+
+    useEffect(() => {
+        setTimeout(() => {
+            showPole.current = true;
+        }, NEXT_QUIZ_TIME);
+    }, []);
+
     useEffect(() => {
         mainState.canvas = document.getElementsByTagName('canvas')[0];
         mainState.ctx = mainState.canvas.getContext('2d');
@@ -91,18 +119,20 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
         drawBg();
         draw();
         keyDown({ keyCode: 999, preventDefault: () => { } });
+
+
     }, []);
 
     useImperativeHandle(ref, () => ({
-        turnLeft: (releaseKey)=>{
-            if(releaseKey) {
+        turnLeft: (releaseKey) => {
+            if (releaseKey) {
                 keyUp({ keyCode: 37, preventDefault: () => { } });
             } else {
                 keyDown({ keyCode: 37, preventDefault: () => { } });
             }
         },
-        turnRight: (releaseKey)=>{
-            if(releaseKey) {
+        turnRight: (releaseKey) => {
+            if (releaseKey) {
                 keyUp({ keyCode: 39, preventDefault: () => { } });
             } else {
                 keyDown({ keyCode: 39, preventDefault: () => { } });
@@ -112,6 +142,12 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
 
     function draw() {
         setTimeout(function () {
+            const perspectiveFactor = (mainState.state.poleY - 70) / (320 - 70);
+            if (showPole.current && perspectiveFactor > 0.95) {
+                quizControllerRef.current.loadNext();
+                console.log("true")
+                return;
+            }
             calcMovement();
 
             //if(mainState.state.speed > 0) {
@@ -134,7 +170,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
             drawRoad(mainState.settings.road.min, mainState.settings.road.max, 10, mainState.colors.road);
             drawRoad(3, 24, 0, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
             drawCar();
-            drawPole(mainState.ctx, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
+            if (showPole.current) drawPole(mainState.ctx, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
             //drawHUD(mainState.ctx, 630, 340, mainState.colors.hud);
 
             requestAnimationFrame(draw);
@@ -144,48 +180,67 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
     function drawPole(ctx, pos) {
         const min = 3, max = 3;
         const basePos = mainState.canvas.width + mainState.state.xpos;
-        
-        // Calculate perspective factor based on Y position (0 at top, 1 near car)
+
         const perspectiveFactor = (mainState.state.poleY - 70) / (320 - 70);
-        
-        // Adjust X position based on perspective
         const startX = ((basePos + min) / 2) - (mainState.state.currentCurve * 3) - 80;
         const centerX = mainState.canvas.width / 2;
-        const xPos = startX +30 + (right ? rightPos : 0);
-        
+        const xPos = startX + 30 + (right ? rightPos : 0);
+
         if (mainState.state.speed > 0) {
             mainState.state.poleY += mainState.state.speed * 0.5;
         }
-        
+
         if (mainState.state.poleY > 320) {
             mainState.state.poleY = 70;
         }
-        
+
         if (mainState.state.poleY < 320) {
-            // Start with smaller scale at the top (0.3) and grow to 1.0 near the car
-            const scale = 0.3 + (perspectiveFactor * 0.7);
-            const Y = scale+60;
-            // Base sizes
+            const scale = 0.5 + (perspectiveFactor * 0.8);
+
             const baseCircleSize = 20;
             const basePoleWidth = 5;
             const basePoleHeight = 50;
-            
-            // Apply scaling
+
             const circleSize = baseCircleSize * scale;
             const poleWidth = basePoleWidth * scale;
             const poleHeight = basePoleHeight * scale;
-            
-            // Draw traffic light
-            ctx.beginPath();
-           
-            
+
             // Draw pole
             ctx.beginPath();
             ctx.fillStyle = "black";
-            ctx.fillRect(xPos, 120-poleHeight, poleWidth, poleHeight);
-            ctx.arc(xPos + 1, 120-poleHeight, circleSize, 0, 2 * Math.PI);
-            ctx.fillStyle = "red";
+            ctx.fillRect(xPos, 120 - poleHeight, poleWidth, poleHeight);
+
+            // Draw circle background
+            ctx.beginPath();
+            ctx.arc(xPos + 1, 120 - poleHeight, circleSize, 0, 2 * Math.PI);
+            ctx.fillStyle = "orange";
             ctx.fill();
+
+            // Draw image inside circle if loaded
+            if (mainState.state.isImageLoaded) {
+                ctx.save(); // Save the current context state
+
+                // Create circular clipping path
+                ctx.beginPath();
+                ctx.arc(xPos + 1, 120 - poleHeight, circleSize * 0.9, 0, 2 * Math.PI);
+                ctx.clip();
+
+                // Calculate image dimensions to maintain aspect ratio
+                const imageSize = circleSize * 1.8;
+                const imageX = xPos + 1 - imageSize / 2;
+                const imageY = 120 - poleHeight - imageSize / 2;
+
+                // Draw the image
+                ctx.drawImage(
+                    mainState.state.poleImage,
+                    imageX,
+                    imageY,
+                    imageSize,
+                    imageSize
+                );
+
+                ctx.restore(); // Restore the context state
+            }
         }
     }
 
@@ -546,10 +601,33 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
     }
 
     return (
-        <div className={'bodyDiv'}>
-            <canvas id="myCanvas" height="450" width="750"></canvas>
-            
-        </div>
+        <>
+            <GameStats ref={gameStatsRef} onGameOver={() => { quizControllerRef.current?.onGameOver() }} />
+            <div className={'bodyDiv'}>
+
+                <canvas id="myCanvas" height="450" width="750"></canvas>
+
+                <QuizController
+                    ref={quizControllerRef}
+                    onRestart={() => {
+                        reset();
+                    }}
+                    onSubmit={(isCorrect, score) => {
+                        reset();
+                        gameStatsRef?.current?.setStats(isCorrect, score)
+                    }}
+                    onQuestionLoad={(quiz) => {
+                        // Update the pole image URL
+                        mainState.state.poleImage.src = getImage(quiz.metadata.imageFile);
+                        mainState.state.poleImage.onload = () => {
+                            mainState.state.isImageLoaded = true;
+                        };
+                    }}
+                />
+
+            </div>
+        </>
+
     );
 });
 

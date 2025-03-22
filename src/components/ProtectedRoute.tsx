@@ -30,10 +30,10 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If requireAuth is false and user is authenticated, redirect to quiz
+  // If requireAuth is false and user is authenticated, redirect to dashboard
   // This is for routes like /login that should redirect if already logged in
   if (!requireAuth && authenticated) {
-    return <Navigate to="/quiz" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   // If authentication check passes, render the children
