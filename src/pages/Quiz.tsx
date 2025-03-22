@@ -65,7 +65,7 @@ const Quiz: React.FC = () => {
   const [questionActive, setQuestionActive] = useState(false);
   const [finalAnswers, setFinalAnswers] = useState<GameQuestion[]>([]);
   const [firstSignSpawned, setFirstSignSpawned] = useState(false);
-  const [selectedModule, setSelectedModule] = useState<string>("Module1");
+  const [selectedModule, setSelectedModule] = useState<string>("Module_1");
   const [showModuleSelection, setShowModuleSelection] = useState(true);
   const [highestModule1Score, setHighestModule1Score] = useState<number>(0);
   const [module2Unlocked, setModule2Unlocked] = useState<boolean>(false);
@@ -162,7 +162,7 @@ const Quiz: React.FC = () => {
 
   // Check if Module 2 should be unlocked
   useEffect(() => {
-    if (selectedModule === "Module1" && score > highestModule1Score) {
+    if (selectedModule === "Module_1" && score > highestModule1Score) {
       setHighestModule1Score(score);
       const maxScore = selectedModule === "GeneralTrafficRules" ? 20 : 48;
       const scorePercentage = (score / maxScore) * 100;
@@ -181,7 +181,7 @@ const Quiz: React.FC = () => {
     toast.error("Game Over! Drive safely next time!");
 
     // Update highest score for Module 1
-    if (selectedModule === "Module1" && score > highestModule1Score) {
+    if (selectedModule === "Module_1" && score > highestModule1Score) {
       setHighestModule1Score(score);
       const maxScore = selectedModule === "GeneralTrafficRules" ? 20 : 48;
       const scorePercentage = (score / maxScore) * 100;
@@ -197,7 +197,7 @@ const Quiz: React.FC = () => {
     try {
       if (finalAnswers && finalAnswers.length > 0) {
         // Use different ssId and level based on the selected module
-        const level = selectedModule === "Module1" ? 1 : 2;
+        const level = selectedModule === "Module_1" ? 1 : 2;
         await quizAppi.submitScoreFeedback(
           score,
           finalAnswers,
@@ -251,7 +251,7 @@ const Quiz: React.FC = () => {
   };
 
   useEffect(() => {
-    if (language === "ENGLISH") setSelectedModule("Module1");
+    if (language === "ENGLISH") setSelectedModule("Module_1");
     else setSelectedModule("Module1_Hindi");
   }, [language]);
 
@@ -345,7 +345,7 @@ const Quiz: React.FC = () => {
 
                   <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
                     <button
-                      onClick={() => handleModuleSelect("Module1")}
+                      onClick={() => handleModuleSelect("Module_1")}
                       className="bg-[#22c55e] hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20"
                     >
                       Beginner

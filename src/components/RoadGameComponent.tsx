@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 // import { quizAppi } from "@/services";
-import CarComponent, { CarComponentRef } from './CarComponent/CarComponent';
+import CarComponent, { CarComponentRef } from "./CarComponent/CarComponent";
 
 import ZebraCrossing from "./ui/ZebraCrossing";
 import compulsoryTurnLeft from "./../assets/signs/compulsoryTurnLeft.png";
@@ -25,6 +25,7 @@ import { QuizModal } from "./ui/quizModal";
 import { QuizQuestion } from "./ui/quizModal/types";
 import { OptionItem } from "./ui/quizModal/OptionItem";
 import quizAppi from "@/services";
+import OptionsPopUp from "./OptionsPopUp/OptionsPopUp";
 
 const signImages = {
   "compulsoryTurnLeft.png": compulsoryTurnLeft,
@@ -45,34 +46,34 @@ const signImages = {
   "bike.jpg": bike,
 };
 const sampleQuestion = {
-  id: 'q1',
-  text: 'What is the largest planet in our solar system?',
+  id: "q1",
+  text: "What is the largest planet in our solar system?",
   options: [
     {
-      id: 'opt1',
-      letter: 'A',
-      text: 'Jupiter',
-      color: 'red'
+      id: "opt1",
+      letter: "A",
+      text: "Jupiter",
+      color: "red",
     },
     {
-      id: 'opt2',
-      letter: 'B',
-      text: 'Saturn',
-      color: 'green'
+      id: "opt2",
+      letter: "B",
+      text: "Saturn",
+      color: "green",
     },
     {
-      id: 'opt3',
-      letter: 'C',
-      text: 'Neptune',
-      color: 'yellow'
+      id: "opt3",
+      letter: "C",
+      text: "Neptune",
+      color: "yellow",
     },
     {
-      id: 'opt4',
-      letter: 'D',
-      text: 'Uranus',
-      color: 'blue'
-    }
-  ]
+      id: "opt4",
+      letter: "D",
+      text: "Uranus",
+      color: "blue",
+    },
+  ],
 };
 
 // Define the structure of the API response
@@ -142,7 +143,7 @@ interface Question {
 }
 
 interface TrafficSign {
-  type: 'stop' | 'yield' | 'speed' | 'school' | 'pedestrian' | 'ZebraCrossing';
+  type: "stop" | "yield" | "speed" | "school" | "pedestrian" | "ZebraCrossing";
   position: number;
   question: GameQuestion;
   imageUrl?: string;
@@ -171,9 +172,9 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   paused = false,
   onQuestionShow,
   setFinalAnswers,
-  module = 'Module1',
+  module = "Module_1",
   setssId,
-  language = 'ENGLISH'
+  language = "ENGLISH",
 }) => {
   const [roadOffset, setRoadOffset] = useState(0);
   const [currentSign, setCurrentSign] = useState<TrafficSign | null>(null);
@@ -198,7 +199,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   const [error, setError] = useState(null);
 
   // Calculate car position based on lane
-  const carPositions = ['25%', '50%', '75%'];
+  const carPositions = ["25%", "50%", "75%"];
   const carPosition = carPositions[carLane];
 
   // Move car left or right
@@ -254,16 +255,17 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
                 options: currentSign.question.options.map((opt) => ({
                   text: opt.toolTip,
                   correct:
-                    Number(currentSign.question.metadata.ans) === opt.sequence
+                    Number(currentSign.question.metadata.ans) === opt.sequence,
                 })),
                 explanation:
-                  currentSign.question.explanation || 'No explanation available'
+                  currentSign.question.explanation ||
+                  "No explanation available",
               };
 
               onAnswerQuestion(
                 false,
                 quizQuestion,
-                currentSign.question.metadata.score || '0'
+                currentSign.question.metadata.score || "0"
               );
             }
 
@@ -287,12 +289,12 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') moveLeft();
-      if (e.key === 'ArrowRight') moveRight();
+      if (e.key === "ArrowLeft") moveLeft();
+      if (e.key === "ArrowRight") moveRight();
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showPopup, gameActive]);
 
   // Game loop
@@ -309,14 +311,14 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         if (onAnswerQuestion) {
           // Create a dummy question to trigger game over
           const dummyQuestion: Question = {
-            text: 'Game Complete',
+            text: "Game Complete",
             options: [],
-            explanation: 'You have completed all questions!'
+            explanation: "You have completed all questions!",
           };
           // Call with false to trigger lives reduction and game over
-          onAnswerQuestion(false, dummyQuestion, '0');
-          onAnswerQuestion(false, dummyQuestion, '0');
-          onAnswerQuestion(false, dummyQuestion, '0');
+          onAnswerQuestion(false, dummyQuestion, "0");
+          onAnswerQuestion(false, dummyQuestion, "0");
+          onAnswerQuestion(false, dummyQuestion, "0");
         }
         return;
       }
@@ -377,12 +379,12 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
               return prev;
             }
 
-            console.log('Showing question:', questions[nextIndex].name);
+            console.log("Showing question:", questions[nextIndex].name);
             setCurrentSign({
-              type: 'ZebraCrossing',
+              type: "ZebraCrossing",
               position: -100,
               speed: signSpeed, // Use the current sign speed
-              question: questions[nextIndex]
+              question: questions[nextIndex],
             });
 
             setIndex((nextIndex + 1) % questions.length);
@@ -405,17 +407,17 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     onQuestionShow,
     index,
     questionsShown,
-    onAnswerQuestion
+    onAnswerQuestion,
   ]);
 
-  console.log('currentSign', currentSign);
+  console.log("currentSign", currentSign);
 
   const handleAnswer = (index: number) => {
-    console.log(Number(currentSign?.question?.metadata?.ans), 'ans#####');
-    console.log('index###', index);
+    console.log(Number(currentSign?.question?.metadata?.ans), "ans#####");
+    console.log("index###", index);
     console.log(
       Number(currentSign?.question?.metadata?.ans) === index,
-      '###check check check'
+      "###check check check"
     );
     if (currentSign) {
       const isCorrect = Number(currentSign?.question?.metadata?.ans) === index;
@@ -425,10 +427,10 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         text: currentSign.question.name,
         options: currentSign.question.options.map((opt) => ({
           text: opt.toolTip,
-          correct: Number(currentSign.question.metadata.ans) === opt.sequence
+          correct: Number(currentSign.question.metadata.ans) === opt.sequence,
         })),
         explanation:
-          currentSign.question.explanation || 'No explanation available'
+          currentSign.question.explanation || "No explanation available",
       };
 
       // Find the option with the matching sequence
@@ -441,7 +443,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         // Create a copy of the question with the selected option ID
         const questionWithSelection = {
           ...currentSign.question,
-          selectedOptionId: selectedOption?.id || 0
+          selectedOptionId: selectedOption?.id || 0,
         };
 
         setAnsweredQuestions((prev) => [...prev, questionWithSelection]);
@@ -452,7 +454,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
       onAnswerQuestion(
         isCorrect,
         quizQuestion,
-        currentSign?.question?.metadata?.score || '0'
+        currentSign?.question?.metadata?.score || "0"
       );
     }
     setShowPopup(false);
@@ -468,9 +470,9 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     const fetchQuestions = async () => {
       try {
         console.log(
-          'Fetching questions for module:',
+          "Fetching questions for module:",
           module,
-          'language:',
+          "language:",
           language
         );
         const data = await quizAppi.getQuestions(module, language);
@@ -480,7 +482,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           .map((q) => q as ApiQuestionData)
           .sort((a, b) => a.sequence - b.sequence);
 
-        console.log('questionsArray', questionsArray);
+        console.log("questionsArray", questionsArray);
         // Convert ApiQuestionData to GameQuestion
         const gameQuestions: GameQuestion[] = questionsArray.map((q) => ({
           id: q.id,
@@ -491,16 +493,16 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           metadata: q.metadata,
           options: q.options,
           explanation: q.explanation,
-          validations: q.validations
+          validations: q.validations,
         }));
 
         setQuestions(gameQuestions);
         setAnsweredQuestions([]); // Reset answered questions when module changes
         setQuestionsShown(new Set()); // Reset shown questions when module changes
         setIndex(0); // Reset index when module changes
-        console.log('Decoded Data:', data); // Ensure you're logging actual data
+        console.log("Decoded Data:", data); // Ensure you're logging actual data
       } catch (err) {
-        setError('Failed to fetch questions');
+        setError("Failed to fetch questions");
       }
     };
 
@@ -508,65 +510,65 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   }, [module, language]); // Re-fetch questions when module or language changes
 
   const getSignImages = (type: string) => {
-    console.log('type', type);
+    console.log("type", type);
     return signImages[type] || null; // Returns the image if found, otherwise null
   };
 
   return (
-    <div className='flex flex-col items-center justify-center w-full'>
+    <div className="flex flex-col items-center justify-center w-full">
       {/* Road Container */}
-      <div className='relative w-full h-[600px] overflow-hidden border-4 border-gray-700 rounded-lg'>
+      <div className="relative w-full h-[600px] overflow-hidden border-4 border-gray-700 rounded-lg">
         {/* Background */}
-        <div className='absolute inset-0 bg-gray-800'>
+        <div className="absolute inset-0 bg-gray-800">
           {/* Left Green Strip */}
-          <div className='absolute left-0 top-0 bottom-0 w-[15%] bg-green-600'>
+          <div className="absolute left-0 top-0 bottom-0 w-[15%] bg-green-600">
             <div
-              className='absolute inset-0'
+              className="absolute inset-0"
               style={{
                 backgroundImage:
-                  'repeating-linear-gradient(to bottom, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px)',
-                backgroundSize: '100% 20px',
-                backgroundPositionY: `${roadOffset}px`
+                  "repeating-linear-gradient(to bottom, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px)",
+                backgroundSize: "100% 20px",
+                backgroundPositionY: `${roadOffset}px`,
               }}
             ></div>
           </div>
 
           {/* Right Green Strip */}
-          <div className='absolute right-0 top-0 bottom-0 w-[15%] bg-green-600'>
+          <div className="absolute right-0 top-0 bottom-0 w-[15%] bg-green-600">
             <div
-              className='absolute inset-0'
+              className="absolute inset-0"
               style={{
                 backgroundImage:
-                  'repeating-linear-gradient(to bottom, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px)',
-                backgroundSize: '100% 20px',
-                backgroundPositionY: `${roadOffset}px`
+                  "repeating-linear-gradient(to bottom, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px)",
+                backgroundSize: "100% 20px",
+                backgroundPositionY: `${roadOffset}px`,
               }}
             ></div>
           </div>
 
           {/* Road */}
-          <div className='absolute left-[15%] right-[15%] top-0 bottom-0 bg-gray-700'>
+          <div className="absolute left-[15%] right-[15%] top-0 bottom-0 bg-gray-700">
             {/* Lane Lines - positioned to separate lanes */}
-            <div className='absolute inset-0'>
+            <div className="absolute inset-0">
               {/* Left Lane Line */}
               <div
-                className='absolute left-[33.33%] top-0 bottom-0 w-[2px]'
+                className="absolute left-[33.33%] top-0 bottom-0 w-[2px]"
                 style={{
                   backgroundImage:
-                    'repeating-linear-gradient(to bottom, white 0px, white 20px, transparent 20px, transparent 40px)',
-                  backgroundSize: '2px 40px',
-                  backgroundPositionY: `${roadOffset}px`
+                    "repeating-linear-gradient(to bottom, white 0px, white 20px, transparent 20px, transparent 40px)",
+                  backgroundSize: "2px 40px",
+                  backgroundPositionY: `${roadOffset}px`,
                 }}
               ></div>
 
               {/* Right Lane Line */}
               <div
-                className='absolute left-[66.66%] top-0 bottom-0 w-[2px]'
+                className="absolute left-[66.66%] top-0 bottom-0 w-[2px]"
                 style={{
                   backgroundImage:
-                    'repeating-linear-gradient(to bottom, white 0px, white 20px, transparent 20px, transparent 40px)',
-                  backgroundSize: '2px 40px',
-                  backgroundPositionY: `${roadOffset}px`
+                    "repeating-linear-gradient(to bottom, white 0px, white 20px, transparent 20px, transparent 40px)",
+                  backgroundSize: "2px 40px",
+                  backgroundPositionY: `${roadOffset}px`,
                 }}
               ></div>
             </div>
@@ -575,27 +577,27 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         {/* Traffic Sign (on the side of the road) */}
         {currentSign &&
-          (currentSign?.question.metadata?.imageFile === 'zebraLines.png' ? (
+          (currentSign?.question.metadata?.imageFile === "zebraLines.png" ? (
             <motion.div
-              className='absolute left-[15%] right-[15%]'
+              className="absolute left-[15%] right-[15%]"
               style={{
-                left: '15%',
-                right: '15%',
-                top: currentSign.position
+                left: "15%",
+                right: "15%",
+                top: currentSign.position,
               }}
             >
               <ZebraCrossing />
             </motion.div>
           ) : (
             <motion.div
-              className='absolute w-12 h-12  text-white flex items-center justify-center rounded-full font-bold z-10'
+              className="absolute w-12 h-12  text-white flex items-center justify-center rounded-full font-bold z-10"
               style={{
                 left:
-                  currentSign?.question?.metadata?.position === 'LEFT'
-                    ? '7%'
-                    : '93%',
+                  currentSign?.question?.metadata?.position === "LEFT"
+                    ? "7%"
+                    : "93%",
                 top: currentSign.position,
-                transform: 'translateX(-50%)'
+                transform: "translateX(-50%)",
               }}
             >
               <img
@@ -608,12 +610,12 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         {/* Car */}
         <motion.div
-          className='absolute bottom-6'
+          className="absolute bottom-6"
           animate={{
             left: carPosition,
-            x: '-50%'
+            x: "-50%",
           }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <CarComponent ref={carRef} />
           {/* Car windows */}
@@ -621,17 +623,17 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
       </div>
 
       {/* Controls */}
-      <div className='mt-4 flex gap-4'>
+      <div className="mt-4 flex gap-4">
         <button
           onClick={moveLeft}
-          className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors'
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
           disabled={showPopup || !gameActive || carLane === 0}
         >
           Left
         </button>
         <button
           onClick={moveRight}
-          className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors'
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
           disabled={showPopup || !gameActive || carLane === 2}
         >
           Right
@@ -639,7 +641,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
 
         <button
           onClick={toggleHeadlight}
-          className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors'
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
           disabled={showPopup || !gameActive || carLane === 2}
         >
           Headlight
@@ -648,7 +650,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           onMouseDown={() => carRef.current?.playHorn(true)} // Start horn
           onMouseUp={() => carRef.current?.playHorn(false)} // Stop horn
           onMouseLeave={() => carRef.current?.playHorn(false)} // Stop if moved out
-          className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors'
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
           disabled={showPopup || !gameActive || carLane === 2}
         >
           Horn

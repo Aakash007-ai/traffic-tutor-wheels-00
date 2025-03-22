@@ -8,7 +8,7 @@ const CLUSTER_API_URL =
 
 const quizService = () => {
   const getQuestions = async (
-    module: string = "Module1",
+    module: string = "Module_1",
     language: string = "ENGLISH"
   ) => {
     const currentModule = language === "ENGLISH" ? module : "Module1_Hindi";

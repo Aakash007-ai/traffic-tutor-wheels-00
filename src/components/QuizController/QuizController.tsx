@@ -61,7 +61,10 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
     const currentQuizIndex = useRef(0);
 
     const handleAnswer = (answerIndex) => {
-      onSubmit(`${currentQuestion.metadata.ans}` === `${answerIndex}`, Number(currentQuestion?.metadata?.score || 0));
+      onSubmit(
+        `${currentQuestion.metadata.ans}` === `${answerIndex}`,
+        Number(currentQuestion?.metadata?.score || 0)
+      );
       currentQuizIndex.current = Math.min(
         currentQuizIndex.current + 1,
         allQuizs.current.length - 1
@@ -86,7 +89,7 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
     useEffect(() => {
       const fetchQuestions = async () => {
         try {
-          const data = await quizAppi.getQuestions("Module1");
+          const data = await quizAppi.getQuestions("Module_1");
           // Cast the API response to our ApiQuestionData type for proper typing
           // setssId(data?.data?.ssId);
           const questionsArray = Object.values(data?.data?.initialQuestions)
@@ -123,15 +126,18 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
             handleAnswer={handleAnswer}
           />
         )}
-        {gameOver && <GameOverPopup
-        toggleLang={() => {}}
-        score={60}
-        onPressStart={() => {
-            setGameOver(false);
-            currentQuizIndex.current = 0;
-            onQuestionLoad(allQuizs.current[0]);
-            onRestart();
-        }} />}
+        {gameOver && (
+          <GameOverPopup
+            toggleLang={() => {}}
+            score={60}
+            onPressStart={() => {
+              setGameOver(false);
+              currentQuizIndex.current = 0;
+              onQuestionLoad(allQuizs.current[0]);
+              onRestart();
+            }}
+          />
+        )}
       </div>
     );
   }
