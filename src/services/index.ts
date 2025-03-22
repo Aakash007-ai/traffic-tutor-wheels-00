@@ -62,6 +62,7 @@ const quizService = () => {
     options: QuestionOption[];
     explanation?: string;
     validations?: unknown;
+    selectedOptionId?: number; // Track the selected option ID
   }
 
   const submitScoreFeedback = async (
@@ -82,11 +83,11 @@ const quizService = () => {
     try {
       // Transform questions into the format required by the API
       const answers = questions.map((question) => {
-        // Convert ans to string before parsing to ensure it works with both string and number types
-        const ansString = String(question.metadata.ans);
+        // Use the selectedOptionId if available, otherwise fall back to the answer from metadata
+        const optionId = question.selectedOptionId;
         return {
           questionId: question.id,
-          optionId: parseInt(ansString),
+          optionId: optionId,
           weightage: 1,
           comment: "",
           metadata: {},

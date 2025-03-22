@@ -117,6 +117,7 @@ interface GameQuestion {
   type?: string;
   lang?: string;
   validations?: unknown;
+  selectedOptionId?: number; // Track the selected option ID
 }
 
 // Import Question interface from Quiz component
@@ -418,11 +419,22 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           currentSign.question.explanation || "No explanation available",
       };
 
-      // Add the question to answered questions
+      // Find the option with the matching sequence
+      const selectedOption = currentSign.question.options.find(
+        (opt) => opt.sequence === index
+      );
+
+      // Add the question with the selected option ID to answered questions
       if (currentSign) {
-        setAnsweredQuestions((prev) => [...prev, currentSign.question]);
+        // Create a copy of the question with the selected option ID
+        const questionWithSelection = {
+          ...currentSign.question,
+          selectedOptionId: selectedOption?.id || 0,
+        };
+
+        setAnsweredQuestions((prev) => [...prev, questionWithSelection]);
         // Update the finalAnswers in the parent component
-        setFinalAnswers([...answeredQuestions, currentSign.question]);
+        setFinalAnswers([...answeredQuestions, questionWithSelection]);
       }
 
       onAnswerQuestion(
