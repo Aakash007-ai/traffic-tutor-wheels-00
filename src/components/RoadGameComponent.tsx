@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { quizAppi } from "@/services";
+// import { quizAppi } from "@/services";
 import CarComponent, { CarComponentRef } from "./CarComponent/CarComponent";
 
 import ZebraCrossing from "./ui/ZebraCrossing";
@@ -18,6 +18,7 @@ import zebraLines from "./../assets/signs/zebraLines.png";
 import { QuizModal } from "./ui/quizModal";
 import { QuizQuestion } from "./ui/quizModal/types";
 import { OptionItem } from "./ui/quizModal/OptionItem";
+import quizAppi from "@/services";
 
 const signImages = {
   "compulsoryTurnLeft.png": compulsoryTurnLeft,
@@ -65,36 +66,61 @@ const sampleQuestion = {
 
 // Define the structure of the API response
 export interface ApiQuestionData {
+  id: number;
   name: string;
+  type: string;
+  lang: string;
   options: {
+    id: number;
     toolTip: string;
     sequence: number;
+    weightage: number;
+    allowComment: boolean;
+    selectionMessage: string;
   }[];
   metadata: {
     ans: string | number;
     imageFile: string;
     position: string;
+    duration?: string;
+    score?: string;
+    imageUrl?: string;
+    imageType?: string;
   };
   explanation?: string;
   sequence: number; // Add sequence property for sorting
+  validations?: unknown;
 }
 
 interface GameQuestion {
+  id: number;
   name: string;
   options: {
+    id: number;
     toolTip: string;
     sequence: number;
+    weightage: number;
+    allowComment: boolean;
+    selectionMessage: string;
   }[];
   metadata: {
     ans: string | number;
     imageFile: string;
     position: string;
+    duration?: string;
+    score?: string;
+    imageUrl?: string;
+    imageType?: string;
   };
   explanation?: string;
+  sequence?: number;
+  type?: string;
+  lang?: string;
+  validations?: unknown;
 }
 
 // Import Question interface from Quiz component
-export interface Question {
+interface Question {
   text: string;
   options: {
     text: string;
@@ -121,15 +147,19 @@ interface RoadGameComponentProps {
   paused?: boolean;
   onQuestionShow?: () => void;
   initialSign?: boolean; // Flag to spawn a sign immediately
-  questions?: Question[]; // Add questions prop
+  setFinalAnswers: (questions: GameQuestion[]) => void;
+  module?: string; // Add module prop
+  setssId: (e: string) => void;
 }
 
 const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   onAnswerQuestion,
-  // questions,
   gameSpeed = 10,
   paused = false,
   onQuestionShow,
+  setFinalAnswers,
+  module = "Module1",
+  setssId,
 }) => {
   const [roadOffset, setRoadOffset] = useState(0);
   const [currentSign, setCurrentSign] = useState<TrafficSign | null>(null);
@@ -141,14 +171,15 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   const [gameActive, setGameActive] = useState(true);
   const [carLane, setCarLane] = useState(1); // 0: left, 1: center, 2: right
   const [signSpeed, setSignSpeed] = useState(gameSpeed); // Track sign speed separately
-  const [questionTimer, setQuestionTimer] = useState(
-    currentSign?.question?.metadata?.duration
-  ); // 30 second timer for questions
+  const [questionTimer, setQuestionTimer] = useState<number>(30); // 30 second timer for questions
 
   const carRef = useRef<CarComponentRef>(null);
   const [index, setIndex] = useState(0);
-
+  const [questionsShown, setQuestionsShown] = useState<Set<number>>(new Set());
   const [questions, setQuestions] = useState<GameQuestion[]>([]);
+  const [answeredQuestions, setAnsweredQuestions] = useState<GameQuestion[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -216,7 +247,11 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
                   "No explanation available",
               };
 
-              onAnswerQuestion(false, quizQuestion);
+              onAnswerQuestion(
+                false,
+                quizQuestion,
+                currentSign.question.metadata.score || "0"
+              );
             }
 
             // Reset the sign
@@ -255,14 +290,42 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
       // Move road - use a larger value to make the animation smoother
       setRoadOffset((prev) => (prev + gameSpeed) % 200);
 
+      // Check if all questions have been shown
+      if (questionsShown.size >= questions.length && questions.length > 0) {
+        // End the game if all questions have been shown
+        if (onAnswerQuestion) {
+          // Create a dummy question to trigger game over
+          const dummyQuestion: Question = {
+            text: "Game Complete",
+            options: [],
+            explanation: "You have completed all questions!",
+          };
+          // Call with false to trigger lives reduction and game over
+          onAnswerQuestion(false, dummyQuestion, "0");
+          onAnswerQuestion(false, dummyQuestion, "0");
+          onAnswerQuestion(false, dummyQuestion, "0");
+        }
+        return;
+      }
+
       // Move current sign if it exists
       if (currentSign) {
         const newPosition = currentSign.position + currentSign.speed;
 
         // Check if sign is approaching the car (stop before reaching the car)
-        if (newPosition >= 200 && newPosition < 220) {
+        if (newPosition >= 300 && newPosition < 320) {
           setShowPopup(true);
           setCurrentQuestion(currentSign.question);
+
+          // Mark this question as shown
+          if (currentSign.question.id) {
+            setQuestionsShown((prev) => {
+              const newSet = new Set(prev);
+              newSet.add(currentSign.question.id);
+              return newSet;
+            });
+          }
+
           setCurrentSign({ ...currentSign, position: newPosition });
           // Notify parent component that a question is being shown
           if (onQuestionShow) {
@@ -281,21 +344,35 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
         // Spawn new sign after a shorter delay
         setSignSpawnTimer((prev) => {
           if (prev > 50) {
-            // Reduced from 100 to 50 for more frequent signs
-            // Spawn a new sign
-            const randomQuestionIndex = Math.floor(
-              Math.random() * questions.length
-            );
-            console.log("questions####", questions);
+            // Find a question that hasn't been shown yet
+            let nextIndex = index;
+            let attempts = 0;
+            const maxAttempts = questions.length;
+
+            // Try to find an unshown question
+            while (
+              attempts < maxAttempts &&
+              questions[nextIndex] &&
+              questionsShown.has(questions[nextIndex].id)
+            ) {
+              nextIndex = (nextIndex + 1) % questions.length;
+              attempts++;
+            }
+
+            // If we've shown all questions, the game over check at the top will handle it
+            if (attempts >= maxAttempts) {
+              return prev;
+            }
+
+            console.log("Showing question:", questions[nextIndex].name);
             setCurrentSign({
               type: "ZebraCrossing",
               position: -100,
               speed: signSpeed, // Use the current sign speed
-              question: questions[index],
+              question: questions[nextIndex],
             });
 
-            setIndex((prevIndex) => (prevIndex + 1) % questions.length);
-
+            setIndex((nextIndex + 1) % questions.length);
             return 0;
           }
           return prev + 1;
@@ -314,6 +391,8 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     showPopup,
     onQuestionShow,
     index,
+    questionsShown,
+    onAnswerQuestion,
   ]);
 
   console.log("currentSign", currentSign);
@@ -339,10 +418,17 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
           currentSign.question.explanation || "No explanation available",
       };
 
+      // Add the question to answered questions
+      if (currentSign) {
+        setAnsweredQuestions((prev) => [...prev, currentSign.question]);
+        // Update the finalAnswers in the parent component
+        setFinalAnswers([...answeredQuestions, currentSign.question]);
+      }
+
       onAnswerQuestion(
         isCorrect,
         quizQuestion,
-        currentSign?.question?.metadata?.score
+        currentSign?.question?.metadata?.score || "0"
       );
     }
     setShowPopup(false);
@@ -357,15 +443,32 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const data = await quizAppi.getQuestions();
+        console.log("Fetching questions for module:", module);
+        const data = await quizAppi.getQuestions(module);
         // Cast the API response to our ApiQuestionData type for proper typing
+        setssId(data?.data?.ssId);
         const questionsArray = Object.values(data?.data?.initialQuestions)
           .map((q) => q as ApiQuestionData)
           .sort((a, b) => a.sequence - b.sequence);
 
         console.log("questionsArray", questionsArray);
-        // Convert ApiQuestionData to GameQuestion (they have the same structure except for sequence)
-        setQuestions(questionsArray);
+        // Convert ApiQuestionData to GameQuestion
+        const gameQuestions: GameQuestion[] = questionsArray.map((q) => ({
+          id: q.id,
+          name: q.name,
+          type: q.type,
+          lang: q.lang,
+          sequence: q.sequence,
+          metadata: q.metadata,
+          options: q.options,
+          explanation: q.explanation,
+          validations: q.validations,
+        }));
+
+        setQuestions(gameQuestions);
+        setAnsweredQuestions([]); // Reset answered questions when module changes
+        setQuestionsShown(new Set()); // Reset shown questions when module changes
+        setIndex(0); // Reset index when module changes
         console.log("Decoded Data:", data); // Ensure you're logging actual data
       } catch (err) {
         setError("Failed to fetch questions");
@@ -373,20 +476,12 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     };
 
     fetchQuestions();
-  }, []);
+  }, [module]); // Re-fetch questions when module changes
 
-  const getSignImages = (type) => {
+  const getSignImages = (type: string) => {
     console.log("type", type);
     return signImages[type] || null; // Returns the image if found, otherwise null
   };
-
-  //  setLives((prev) => prev - 1);
-  //  setLastAnswerCorrect(false);
-  //  toast.error("Incorrect decision!");
-
-  //  if (lives <= 1) {
-  //    handleGameOver();
-  //  }
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
@@ -539,16 +634,16 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
             <p className="text-xl font-medium text-green-900 mb-3">
               {currentQuestion?.name}
             </p>
-            {/* <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900">
+            <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900">
               {questionTimer}s
-            </div> */}
+            </div>
           </div>
-          <div className="w-full bg-gray-300 h-2 mb-4 rounded-full overflow-hidden">
+          {/* <div className="w-full bg-gray-300 h-2 mb-4 rounded-full overflow-hidden">
             <div
               className="bg-green-600 h-full transition-all duration-1000 ease-linear"
               style={{ width: `${(questionTimer / 30) * 100}%` }}
             ></div>
-          </div>
+          </div> */}
           <div className="flex flex-col gap-2">
             {currentQuestion.options.map((option, index) => (
               <OptionItem

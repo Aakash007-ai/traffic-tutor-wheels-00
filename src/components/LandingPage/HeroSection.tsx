@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
   return (
-    <section className='relative pt-12 lg:pt-24 pb-32 overflow-hidden'>
+    <section className='relative pt-12 lg:pt-16 pb-32 overflow-hidden'>
       {/* Decorative road line at the bottom */}
       <div className='absolute bottom-0 left-0 right-0 h-8 bg-black'>
         <div className="road-dash h-2 absolute top-3 left-0 right-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyIj48cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=')]"></div>

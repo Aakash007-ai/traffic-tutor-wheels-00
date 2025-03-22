@@ -7,6 +7,36 @@ import { toast } from "sonner";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import RoadGameComponent from "@/components/RoadGameComponent";
 import { ProctoringSystem } from "@/components/Proctoring";
+import quizAppi from "@/services";
+// import { quizAppi } from "../services/index.js";
+
+// Define the GameQuestion interface to match RoadGameComponent
+interface GameQuestion {
+  id: number;
+  name: string;
+  options: {
+    id: number;
+    toolTip: string;
+    sequence: number;
+    weightage: number;
+    allowComment: boolean;
+    selectionMessage: string;
+  }[];
+  metadata: {
+    ans: string | number;
+    imageFile: string;
+    position: string;
+    duration?: string;
+    score?: string;
+    imageUrl?: string;
+    imageType?: string;
+  };
+  explanation?: string;
+  sequence?: number;
+  type?: string;
+  lang?: string;
+  validations?: unknown;
+}
 
 // Define the Question interface
 interface Question {
@@ -19,87 +49,6 @@ interface Question {
 }
 
 // Traffic questions
-const trafficQuestions: Question[] = [
-  {
-    text: "What should you do when you see a STOP sign?",
-    options: [
-      { text: "Come to a complete stop and check for traffic.", correct: true },
-      {
-        text: "Slow down and keep moving if the road looks clear.",
-        correct: false,
-      },
-      { text: "Honk and drive through quickly.", correct: false },
-      { text: "Ignore it if you're in a hurry.", correct: false },
-    ],
-    explanation:
-      "Always come to a complete stop at a stop sign and check for traffic before proceeding.",
-  },
-  {
-    text: "What should you do when approaching a yellow traffic light?",
-    options: [
-      {
-        text: "Speed up to make it through before it turns red.",
-        correct: false,
-      },
-      {
-        text: "Slow down and prepare to stop if it's safe to do so.",
-        correct: true,
-      },
-      { text: "Stop immediately regardless of your position.", correct: false },
-      {
-        text: "Honk to alert other drivers you're going through.",
-        correct: false,
-      },
-    ],
-    explanation:
-      "Yellow lights indicate you should slow down and prepare to stop if it's safe. If you're too close to stop safely, proceed with caution.",
-  },
-  {
-    text: "What should you do when you see a pedestrian waiting to cross?",
-    options: [
-      { text: "Speed up to pass before they start crossing.", correct: false },
-      {
-        text: "Continue at your current speed - pedestrians should wait for cars.",
-        correct: false,
-      },
-      {
-        text: "Stop and yield to the pedestrian until they've crossed.",
-        correct: true,
-      },
-      { text: "Honk to let them know you're coming through.", correct: false },
-    ],
-    explanation:
-      "Always yield to pedestrians at crosswalks. It's not only courteous but also the law. Wait until they've completely crossed before proceeding.",
-  },
-  {
-    text: "What should you do in a school zone during school hours?",
-    options: [
-      { text: "Drive at the regular speed limit.", correct: false },
-      { text: "Slow down to the school zone speed limit.", correct: true },
-      {
-        text: "Drive at any speed as long as there are no children visible.",
-        correct: false,
-      },
-      { text: "Speed up to get through the zone quickly.", correct: false },
-    ],
-    explanation:
-      "Always reduce your speed to the posted school zone limit during designated hours, regardless of whether children are visible.",
-  },
-  {
-    text: "What should you do when an ambulance with sirens is approaching from behind?",
-    options: [
-      { text: "Speed up to get out of the way.", correct: false },
-      { text: "Continue driving normally.", correct: false },
-      {
-        text: "Pull over to the right side of the road and stop.",
-        correct: true,
-      },
-      { text: "Change lanes but maintain your speed.", correct: false },
-    ],
-    explanation:
-      "When an emergency vehicle is approaching with lights and sirens, you must pull over to the right side of the road when safe and come to a complete stop.",
-  },
-];
 
 const Quiz: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -113,8 +62,58 @@ const Quiz: React.FC = () => {
   );
   const [lastExplanation, setLastExplanation] = useState<string | null>(null);
   const [questionActive, setQuestionActive] = useState(false);
+  const [finalAnswers, setFinalAnswers] = useState<GameQuestion[]>([]);
   const [firstSignSpawned, setFirstSignSpawned] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<string>("Module1");
+  const [showModuleSelection, setShowModuleSelection] = useState(true);
+  const [highestModule1Score, setHighestModule1Score] = useState<number>(0);
+  const [module2Unlocked, setModule2Unlocked] = useState<boolean>(false);
+  const [ssId, setssId] = useState(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
+
+  // Fetch user data when component mounts
+  useEffect(() => {
+    const fetchUser = async () => {
+      const fetchAccessToken = () => {
+        const cookies = document.cookie.split("; ");
+        const accessTokenCookie = cookies.find((row) =>
+          row.startsWith("accessToken=")
+        );
+        return accessTokenCookie ? accessTokenCookie.split("=")[1] : null;
+      };
+
+      const token = fetchAccessToken();
+      if (!token) {
+        console.error("Access token not found");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://192.168.26.248:8091/api/v1/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data && data.id) {
+          setUserId(data.id);
+          console.log("User ID set:", data.id);
+        }
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   // Spawn first sign immediately when game starts
   useEffect(() => {
@@ -129,8 +128,13 @@ const Quiz: React.FC = () => {
 
   // Increase distance over time
 
+  const handleModuleSelect = (module: string) => {
+    setSelectedModule(module);
+    setShowModuleSelection(false);
+    handleStartGame();
+  };
+
   const handleStartGame = () => {
-    if(!isProctoringEnabled) return;
     setGameStarted(true);
     setGameOver(false);
     setScore(0);
@@ -141,9 +145,54 @@ const Quiz: React.FC = () => {
     toast("Drive safely! Watch for traffic signs!");
   };
 
-  const handleGameOver = () => {
+  // Check if Module 2 should be unlocked
+  useEffect(() => {
+    if (selectedModule === "Module1" && score > highestModule1Score) {
+      setHighestModule1Score(score);
+
+      // Unlock Module 2 if score is above 80%
+      if (score >= 80) {
+        setModule2Unlocked(true);
+        toast.success("Module 2 unlocked!");
+      }
+    }
+  }, [score, selectedModule, highestModule1Score]);
+
+  const handleGameOver = async () => {
     setGameOver(true);
+    setShowModuleSelection(true); // Show module selection again
     toast.error("Game Over! Drive safely next time!");
+
+    // Update highest score for Module 1
+    if (selectedModule === "Module1" && score > highestModule1Score) {
+      setHighestModule1Score(score);
+
+      // Unlock Module 2 if score is above 80%
+      if (score >= 80) {
+        setModule2Unlocked(true);
+        toast.success("Module 2 unlocked!");
+      }
+    }
+
+    // Submit score and feedback to the API
+    try {
+      if (finalAnswers && finalAnswers.length > 0) {
+        // Use different ssId and level based on the selected module
+        const level = selectedModule === "Module1" ? 1 : 2;
+        await quizAppi.submitScoreFeedback(
+          score,
+          finalAnswers,
+          ssId,
+          level,
+          userId || undefined
+        );
+        console.log("Score and feedback submitted successfully");
+      } else {
+        console.warn("No answers to submit");
+      }
+    } catch (error) {
+      console.error("Failed to submit score and feedback:", error);
+    }
   };
 
   const handleAnswerQuestion = (
@@ -170,13 +219,9 @@ const Quiz: React.FC = () => {
     }
 
     // Find the matching question in our array to get the explanation
-    const matchedQuestion = trafficQuestions.find(
-      (q) => q.text === question.text
-    );
-    if (matchedQuestion) {
-      setLastExplanation(matchedQuestion.explanation);
+    if (question.explanation) {
+      setLastExplanation(question.explanation);
     }
-
     // Clear explanation after 5 seconds
     setTimeout(() => {
       setLastAnswerCorrect(null);
@@ -190,8 +235,9 @@ const Quiz: React.FC = () => {
 
      
       <Header />
+
       <main className="container max-w-7xl mx-auto px-4">
-        {/* game over condition */}
+          {/* game over condition */}
         {!gameStarted || gameOver ? (
           <AnimatedTransition animation="scale">
             <Card glass>
@@ -224,9 +270,30 @@ const Quiz: React.FC = () => {
                   </p>
                 )}
 
-                <Button onClick={handleStartGame}>
-                  {gameOver ? "Drive Again" : "Start Driving"}
-                </Button>
+                {showModuleSelection ? (
+                  <div className="flex flex-col gap-4 w-full max-w-xs">
+                    <Button onClick={() => handleModuleSelect("Module1")}>
+                      Module 1
+                    </Button>
+                    <Button
+                      onClick={() => handleModuleSelect("GeneralTrafficRules")}
+                      disabled={!module2Unlocked}
+                      className={
+                        !module2Unlocked ? "opacity-50 cursor-not-allowed" : ""
+                      }
+                    >
+                      Module 2{" "}
+                      {!module2Unlocked && `(Score 80% in Module 1 to unlock)`}
+                    </Button>
+                    {gameOver && highestModule1Score > 0 && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Highest Module 1 Score: {highestModule1Score}%
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <Button onClick={handleStartGame}>Start Driving</Button>
+                )}
               </div>
             </Card>
           </AnimatedTransition>
@@ -271,10 +338,12 @@ const Quiz: React.FC = () => {
               <div className="relative">
                 <RoadGameComponent
                   onAnswerQuestion={handleAnswerQuestion}
-                  questions={trafficQuestions}
                   gameSpeed={gameSpeed}
                   paused={gameOver}
                   onQuestionShow={() => setQuestionActive(true)}
+                  setFinalAnswers={setFinalAnswers}
+                  module={selectedModule}
+                  setssId={setssId}
                 />
 
                 {/* Feedback message */}

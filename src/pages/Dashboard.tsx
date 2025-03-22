@@ -1,25 +1,32 @@
-
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Car, BookOpen, Award, BarChart3, 
-  ShieldCheck, CircleAlert, TrafficCone
-} from 'lucide-react';
-import { Header } from '@/components/Header';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
-import AnimatedTransition from '@/components/AnimatedTransition';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Car,
+  BookOpen,
+  Award,
+  BarChart3,
+  ShieldCheck,
+  CircleAlert,
+  TrafficCone,
+} from "lucide-react";
+import { Header } from "@/components/Header";
+import { Card } from "@/components/Card";
+import { Button } from "@/components/Button";
+import AnimatedTransition from "@/components/AnimatedTransition";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
+
+  const [userData, setUserData] = useState(null);
+  const [error, setError] = useState(null);
+
   // Sample progress data
   const progress = {
     quizzesCompleted: 2,
     simulationsCompleted: 1,
     overallScore: 85,
   };
-  
+
   // Sample course modules
   const modules = [
     {
@@ -35,7 +42,8 @@ const Dashboard = () => {
       id: 2,
       title: "Right of Way Rules",
       icon: ShieldCheck,
-      description: "Master the rules of right of way at intersections and beyond",
+      description:
+        "Master the rules of right of way at intersections and beyond",
       progress: 30,
       color: "bg-green-500/10",
       textColor: "text-green-500",
@@ -48,13 +56,52 @@ const Dashboard = () => {
       progress: 10,
       color: "bg-orange-500/10",
       textColor: "text-orange-500",
-    }
+    },
   ];
+
+  const fetchAccessToken = () => {
+    const cookies = document.cookie.split("; ");
+    const accessTokenCookie = cookies.find((row) =>
+      row.startsWith("accessToken=")
+    );
+    return accessTokenCookie ? accessTokenCookie.split("=")[1] : null;
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = fetchAccessToken();
+      if (!token) {
+        setError("Access token not found");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://192.168.26.248:8091/api/v1/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setUserData(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-background pt-20 pb-16">
       <Header />
-      
+
       <main className="container max-w-4xl mx-auto px-4">
         {/* Welcome Section */}
         <AnimatedTransition animation="fade" duration={800}>
@@ -65,7 +112,7 @@ const Dashboard = () => {
             </p>
           </div>
         </AnimatedTransition>
-        
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <Card glass delay={200}>
@@ -79,24 +126,32 @@ const Dashboard = () => {
               </div>
             </div>
           </Card>
-          
+
           <Card glass delay={300}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-muted-foreground text-sm mb-1">Quizzes Completed</p>
-                <h3 className="text-3xl font-bold">{progress.quizzesCompleted}</h3>
+                <p className="text-muted-foreground text-sm mb-1">
+                  Quizzes Completed
+                </p>
+                <h3 className="text-3xl font-bold">
+                  {progress.quizzesCompleted}
+                </h3>
               </div>
               <div className="bg-primary/10 p-2 rounded-full">
                 <BarChart3 className="h-5 w-5 text-primary" />
               </div>
             </div>
           </Card>
-          
+
           <Card glass delay={400}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-muted-foreground text-sm mb-1">Simulations</p>
-                <h3 className="text-3xl font-bold">{progress.simulationsCompleted}</h3>
+                <p className="text-muted-foreground text-sm mb-1">
+                  Simulations
+                </p>
+                <h3 className="text-3xl font-bold">
+                  {progress.simulationsCompleted}
+                </h3>
               </div>
               <div className="bg-primary/10 p-2 rounded-full">
                 <Car className="h-5 w-5 text-primary" />
@@ -104,29 +159,35 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
-        
+
         {/* Learning Modules */}
         <AnimatedTransition animation="slide-up" duration={800} delay={500}>
           <h2 className="text-xl font-bold mb-6">Learning Modules</h2>
-          
+
           <div className="space-y-4">
             {modules.map((module, index) => (
-              <Card key={module.id} glass interactive delay={600 + (index * 100)}>
+              <Card key={module.id} glass interactive delay={600 + index * 100}>
                 <div className="flex items-center gap-4">
                   <div className={`${module.color} p-3 rounded-xl`}>
                     <module.icon className={`h-6 w-6 ${module.textColor}`} />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-medium">{module.title}</h3>
-                    <p className="text-muted-foreground text-sm">{module.description}</p>
+                    <p className="text-muted-foreground text-sm">
+                      {module.description}
+                    </p>
                     <div className="w-full bg-secondary rounded-full h-1.5 mt-3">
-                      <div 
-                        className="bg-primary h-1.5 rounded-full" 
+                      <div
+                        className="bg-primary h-1.5 rounded-full"
                         style={{ width: `${module.progress}%` }}
                       />
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/quiz')}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate("/quiz")}
+                  >
                     Continue
                   </Button>
                 </div>
@@ -134,32 +195,36 @@ const Dashboard = () => {
             ))}
           </div>
         </AnimatedTransition>
-        
+
         {/* Quick Actions */}
         <AnimatedTransition animation="slide-up" duration={800} delay={800}>
           <div className="mt-12">
             <h2 className="text-xl font-bold mb-6">Quick Actions</h2>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Button 
+              <Button
                 className="h-auto py-4 px-6 justify-start gap-3"
-                onClick={() => navigate('/quiz')}
+                onClick={() => navigate("/quiz")}
               >
                 <BookOpen className="h-5 w-5" />
                 <div className="text-left">
                   <p className="font-medium">Take a Quiz</p>
-                  <p className="text-primary-foreground/80 text-xs">Test your knowledge</p>
+                  <p className="text-primary-foreground/80 text-xs">
+                    Test your knowledge
+                  </p>
                 </div>
               </Button>
-              
-              <Button 
+
+              <Button
                 className="h-auto py-4 px-6 justify-start gap-3"
-                onClick={() => navigate('/simulation')}
+                onClick={() => navigate("/simulation")}
               >
                 <Car className="h-5 w-5" />
                 <div className="text-left">
                   <p className="font-medium">Start Simulation</p>
-                  <p className="text-primary-foreground/80 text-xs">Practice your skills</p>
+                  <p className="text-primary-foreground/80 text-xs">
+                    Practice your skills
+                  </p>
                 </div>
               </Button>
             </div>

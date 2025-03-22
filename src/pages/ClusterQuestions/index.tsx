@@ -1,13 +1,13 @@
 import AnimatedTransition from "@/components/AnimatedTransition";
 import Card from "@/components/Card";
-import { ApiQuestionData } from "@/components/RoadGameComponent";
 import { OptionItem } from "@/components/ui/quizModal/OptionItem";
-import { quizAppi } from "@/services";
 import { useQuery } from "@tanstack/react-query";
 import { Heart, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import quizAppi from "@/services";
+import { ApiQuestionData } from "@/components/RoadGameComponent";
 
 export const ClusterSignals = () => {
     const questions = useQuery({

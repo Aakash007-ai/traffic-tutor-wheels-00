@@ -1,11 +1,11 @@
-import { Button } from '@/components/Button';
 import BenefitsSection from '@/components/LandingPage/BenefitsSection';
 import CTASection from '@/components/LandingPage/CTASection';
 import FeatureSection from '@/components/LandingPage/FeatureSection';
 import FloatingCTA from '@/components/LandingPage/FloatingCTA';
 import HeroSection from '@/components/LandingPage/HeroSection';
+// import HeroSection from '@/components/LandingPage/HeroSection';
 import HowItWorksSection from '@/components/LandingPage/HowItWorksSection';
-import { Link } from 'lucide-react';
+import LoginButton from '@/components/LoginButton';
 
 const Index = () => {
   return (
