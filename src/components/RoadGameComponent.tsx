@@ -395,8 +395,6 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     onAnswerQuestion,
   ]);
 
-  console.log("currentSign", currentSign);
-
   const handleAnswer = (index: number) => {
     console.log(Number(currentSign?.question?.metadata?.ans), "ans#####");
     console.log("index###", index);

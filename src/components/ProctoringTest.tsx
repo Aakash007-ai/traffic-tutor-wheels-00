@@ -10,7 +10,7 @@ export const ProctorTestScreen = () => {
         <div>
             <h1>Online Exam</h1>
             <p>Please follow all proctoring guidelines.</p>
-            <ProctoringSystem onStatusChange={setIsProctoringEnabled} isGameStarted={true} />
+            <ProctoringSystem setIsProctoringEnabled={setIsProctoringEnabled} isGameStarted={true} />
         </div>
     );
 };
