@@ -16,8 +16,17 @@ export const ProctoringSystem = () => {
         tabSwitch: 0,
         fullscreenExit: 0,
         multipleScreens: 0,
-        backgroundNoise: 0
+        backgroundNoise: 0,
+        gazeAway: 0,
+        cheating: 0,
+        absence: 0
     }); 
+
+    const [gazeDirectionTime, setGazeDirectionTime] = useState(0);
+    const gazeDirectionThreshold = 10; // seconds
+    const [currentGazeDirection, setCurrentGazeDirection] = useState(null);
+    const [absenceTime, setAbsenceTime] = useState(0);
+    const absenceThreshold = 10; // seconds
 
     useEffect(() => {
         runPosenet();
@@ -42,30 +51,46 @@ export const ProctoringSystem = () => {
     };
 
     const runPosenet = async () => {
-      console.log('runPosenet inside --> ', )
-      try {
-        const net = await posenet.load({
-          architecture: "ResNet50",
-          inputResolution: { width: 640, height: 480 },
-          outputStride: 32
-        })
-      console.log('<--- net log --> ', net)
+        if (isAlertVisible) return;
+        console.log('runPosenet inside --> ', )
+        try {
+            const net = await posenet.load({
+                architecture: "ResNet50",
+                inputResolution: { width: 640, height: 480 },
+                outputStride: 32,
+                // multiplier: 0.50
+            })
+            console.log('<--- net log --> ', net)
 
-        setInterval(() => detectPose(net), 1000);
+            setInterval(() => detectPose(net), 1000);
+            
+        } catch (error) {
+            console.error("Error loading PoseNet:", error);
+        }
         
-      } catch (error) {
-        console.error("Error loading PoseNet:", error);
-      }
-      
     };
 
     const detectPose = async (net) => {
-      console.log("Pose detecting --------------------");
+        if (isAlertVisible) return;
+        console.log("Pose detecting --------------------");
         if (webcamRef.current?.video?.readyState === 4) {
             const video = webcamRef.current.video;
             const pose = await net.estimateSinglePose(video, {
-              flipHorizontal: false
+                flipHorizontal: false
             });
+            console.log('pose --> ', pose);
+
+            const isPersonInFrame = pose.keypoints.some(keypoint => keypoint.score > 0.2); // Lowered threshold to detect more keypoints
+            if (!isPersonInFrame) {
+                setAbsenceTime(prevTime => prevTime + 1);
+                if (absenceTime >= absenceThreshold && !isAlertVisible) {
+                    showAlert("No person detected!", "Please ensure you are in the frame.", "warning", "absence");
+                    setAbsenceTime(0); // Reset the timer after showing alert
+                }
+            } else {
+                setAbsenceTime(0); // Reset if person is detected
+            }
+
             checkGazeDirection(pose.keypoints, 0.8);
         }
     };
@@ -74,11 +99,27 @@ export const ProctoringSystem = () => {
         const keypointEarL = keypoints[3]; // Left ear
         const keypointEarR = keypoints[4]; // Right ear
 
-        if (keypointEarL.score < minConfidence && !isAlertVisible) {
-            showAlert("You looked away from the Screen (Right)", "Please stay focused!", "warning", "gazeRight");
+        let newGazeDirection = null;
+        if (keypointEarL.score < minConfidence) {
+            newGazeDirection = "right";
+        } else if (keypointEarR.score < minConfidence) {
+            newGazeDirection = "left";
         }
-        if (keypointEarR.score < minConfidence && !isAlertVisible) {
-            showAlert("You looked away from the Screen (Left)", "Please stay focused!", "warning", "gazeLeft");
+
+        if (newGazeDirection) {
+            if (currentGazeDirection === newGazeDirection) {
+                setGazeDirectionTime(prevTime => prevTime + 1);
+                if (gazeDirectionTime >= gazeDirectionThreshold && !isAlertVisible) {
+                    showAlert("Possible cheating detected!", "You've been looking in one direction for too long.", "error", "cheating");
+                    setGazeDirectionTime(0); // Reset the timer after showing alert
+                }
+            } else {
+                setCurrentGazeDirection(newGazeDirection);
+                setGazeDirectionTime(1); // Start counting for the new direction
+            }
+        } else {
+            setCurrentGazeDirection(null);
+            setGazeDirectionTime(0); // Reset if user is looking at the screen
         }
     };
 
@@ -92,6 +133,7 @@ export const ProctoringSystem = () => {
         document.onmousemove = resetIdle;
         document.onkeypress = resetIdle;
         setInterval(() => {
+            if (isAlertVisible) return;
             idleTime++;
             if (idleTime > 60 && !isAlertVisible) {
                 setIsIdle(true);
@@ -102,6 +144,7 @@ export const ProctoringSystem = () => {
 
     const detectTabSwitching = () => {
         document.addEventListener("visibilitychange", () => {
+            if (isAlertVisible) return;
             if (document.hidden && !isAlertVisible) {
                 showAlert("Tab Change Detected!", "Please stay on the exam screen!", "error", "tabSwitch");
             }
@@ -110,6 +153,7 @@ export const ProctoringSystem = () => {
 
     const detectFullscreenExit = () => {
         document.addEventListener("fullscreenchange", () => {
+            if (isAlertVisible) return;
             if (!document.fullscreenElement && !isAlertVisible) {
                 showAlert("Fullscreen Exited!", "Your answers might be reset!", "error", "fullscreenExit");
             }
@@ -118,6 +162,7 @@ export const ProctoringSystem = () => {
 
     const checkMultipleMonitors = () => {
         navigator.mediaDevices.getDisplayMedia({ video: true }).then(() => {
+            if (isAlertVisible) return;
             if (!isAlertVisible) {
                 showAlert("Multiple Screens Detected!", "Only use one screen.", "error", "multipleScreens");
             }
@@ -126,6 +171,7 @@ export const ProctoringSystem = () => {
 
     const startAudioMonitoring = () => {
         navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+            if (isAlertVisible) return;
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const analyser = audioContext.createAnalyser();
             const source = audioContext.createMediaStreamSource(stream);
@@ -134,6 +180,7 @@ export const ProctoringSystem = () => {
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
             setInterval(() => {
+                if (isAlertVisible) return;
                 analyser.getByteFrequencyData(dataArray);
                 const averageVolume = dataArray.reduce((a, b) => a + b) / bufferLength;
                 if (averageVolume > 50 && !isAlertVisible) {
@@ -158,6 +205,8 @@ export const ProctoringSystem = () => {
                     <li>Fullscreen Exit: {alertCounts.fullscreenExit}</li>
                     <li>Multiple Screens: {alertCounts.multipleScreens}</li>
                     <li>Background Noise: {alertCounts.backgroundNoise}</li>
+                    <li>Cheating: {alertCounts.cheating}</li>
+                    <li>Absence: {alertCounts.absence}</li>
                 </ul>
             </div>
         </div>
