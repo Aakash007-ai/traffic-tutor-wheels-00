@@ -3,6 +3,7 @@ import './RoadComponent.css';
 import QuizController, { QuizControllerRef } from '../QuizController/QuizController';
 import { getImage } from '../QuizController/QuizControllerImage';
 import GameStats from '../GameStats/GameStats';
+import Sound from '../sound';
 
 
 export interface IRoadComponentProp {
@@ -22,9 +23,10 @@ const NEXT_QUIZ_TIME = 5000;
 const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right = false }, ref) => {
     const showPole = useRef(false);
     const gameStatsRef = useRef(null);
+    const audioRef = useRef(null);
     const quizControllerRef = useRef<QuizControllerRef>(null);
 
-    const mainState = {
+    const mainState = useRef({
         canvas: null,
         ctx: null,
         canvas2: null,
@@ -82,11 +84,11 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
         storage: {
             bg: null
         }
-    };
+    });
 
     const reset = () => {
         showPole.current = false;
-        mainState.state.poleY = 70;
+        mainState.current.state.poleY = 70;
         // drawBg();
         draw();
         keyDown({ keyCode: 999, preventDefault: () => { } });
@@ -102,20 +104,20 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
     }, []);
 
     useEffect(() => {
-        mainState.canvas = document.getElementsByTagName('canvas')[0];
-        mainState.ctx = mainState.canvas.getContext('2d');
-        mainState.canvas2 = document.createElement('canvas');
-        mainState.canvas2.width = mainState.canvas.width;
-        mainState.canvas2.height = mainState.canvas.height;
-        mainState.ctx2 = mainState.canvas2.getContext('2d');
-        mainState.signCanvas = document.createElement('canvas');
-        mainState.signCanvas.width = mainState.canvas.width;
-        mainState.signCanvas.height = mainState.canvas.height;
-        mainState.signCtx = mainState.signCanvas.getContext('2d');
+        mainState.current.canvas = document.getElementsByTagName('canvas')[0];
+        mainState.current.ctx = mainState.current.canvas.getContext('2d');
+        mainState.current.canvas2 = document.createElement('canvas');
+        mainState.current.canvas2.width = mainState.current.canvas.width;
+        mainState.current.canvas2.height = mainState.current.canvas.height;
+        mainState.current.ctx2 = mainState.current.canvas2.getContext('2d');
+        mainState.current.signCanvas = document.createElement('canvas');
+        mainState.current.signCanvas.width = mainState.current.canvas.width;
+        mainState.current.signCanvas.height = mainState.current.canvas.height;
+        mainState.current.signCtx = mainState.current.signCanvas.getContext('2d');
         window.addEventListener("keydown", keyDown, false);
         window.addEventListener("keyup", keyUp, false);
-        mainState.signCtx.fillStyle = "green";
-        mainState.signCtx.fillRect(100, 10, 40, 100);
+        mainState.current.signCtx.fillStyle = "green";
+        mainState.current.signCtx.fillRect(100, 10, 40, 100);
         drawBg();
         draw();
 
@@ -141,7 +143,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
 
     function draw() {
         setTimeout(function () {
-            const perspectiveFactor = (mainState.state.poleY - 70) / (320 - 70);
+            const perspectiveFactor = (mainState.current.state.poleY - 70) / (320 - 70);
             if (showPole.current && perspectiveFactor > 0.95) {
                 quizControllerRef.current.loadNext();
                 console.log("true")
@@ -149,51 +151,51 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
             }
             calcMovement();
 
-            //if(mainState.state.speed > 0) {
-            mainState.state.bgpos += (mainState.state.currentCurve * 0.02) * (mainState.state.speed * 0.2);
-            mainState.state.bgpos = mainState.state.bgpos % mainState.canvas.width;
+            //if(mainState.current.state.speed > 0) {
+            mainState.current.state.bgpos += (mainState.current.state.currentCurve * 0.02) * (mainState.current.state.speed * 0.2);
+            mainState.current.state.bgpos = mainState.current.state.bgpos % mainState.current.canvas.width;
 
-            mainState.ctx.putImageData(mainState.storage.bg, mainState.state.bgpos, 5);
-            mainState.ctx.putImageData(mainState.storage.bg, mainState.state.bgpos > 0 ? mainState.state.bgpos - mainState.canvas.width : mainState.state.bgpos + mainState.canvas.width, 5);
+            mainState.current.ctx.putImageData(mainState.current.storage.bg, mainState.current.state.bgpos, 5);
+            mainState.current.ctx.putImageData(mainState.current.storage.bg, mainState.current.state.bgpos > 0 ? mainState.current.state.bgpos - mainState.current.canvas.width : mainState.current.state.bgpos + mainState.current.canvas.width, 5);
             //}
 
-            mainState.state.offset += mainState.state.speed * 0.05;
-            if (mainState.state.offset > mainState.settings.ground.min) {
-                mainState.state.offset = mainState.settings.ground.min - mainState.state.offset;
-                mainState.state.startDark = !mainState.state.startDark;
+            mainState.current.state.offset += mainState.current.state.speed * 0.05;
+            if (mainState.current.state.offset > mainState.current.settings.ground.min) {
+                mainState.current.state.offset = mainState.current.settings.ground.min - mainState.current.state.offset;
+                mainState.current.state.startDark = !mainState.current.state.startDark;
             }
-            drawGround(mainState.ctx, mainState.state.offset, mainState.colors.ground, mainState.colors.groundDark, mainState.canvas.width);
+            drawGround(mainState.current.ctx, mainState.current.state.offset, mainState.current.colors.ground, mainState.current.colors.groundDark, mainState.current.canvas.width);
 
-            drawRoad(mainState.settings.road.min + 6, mainState.settings.road.max + 36, 10, mainState.colors.roadLine);
-            drawGround(mainState.ctx2, mainState.state.offset, mainState.colors.roadLine, mainState.colors.road, mainState.canvas.width);
-            drawRoad(mainState.settings.road.min, mainState.settings.road.max, 10, mainState.colors.road);
-            drawRoad(3, 24, 0, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
+            drawRoad(mainState.current.settings.road.min + 6, mainState.current.settings.road.max + 36, 10, mainState.current.colors.roadLine);
+            drawGround(mainState.current.ctx2, mainState.current.state.offset, mainState.current.colors.roadLine, mainState.current.colors.road, mainState.current.canvas.width);
+            drawRoad(mainState.current.settings.road.min, mainState.current.settings.road.max, 10, mainState.current.colors.road);
+            drawRoad(3, 24, 0, mainState.current.ctx.createPattern(mainState.current.canvas2, 'repeat'));
             drawCar();
-            if (showPole.current) drawPole(mainState.ctx, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
-            //drawHUD(mainState.ctx, 630, 340, mainState.colors.hud);
+            if (showPole.current) drawPole(mainState.current.ctx, mainState.current.ctx.createPattern(mainState.current.canvas2, 'repeat'));
+            //drawHUD(mainState.current.ctx, 630, 340, mainState.current.colors.hud);
 
             requestAnimationFrame(draw);
-        }, 1000 / mainState.settings.fps);
+        }, 1000 / mainState.current.settings.fps);
     }
 
     function drawPole(ctx, pos) {
         const min = 3, max = 3;
-        const basePos = mainState.canvas.width + mainState.state.xpos;
+        const basePos = mainState.current.canvas.width + mainState.current.state.xpos;
 
-        const perspectiveFactor = (mainState.state.poleY - 70) / (320 - 70);
-        const startX = ((basePos + min) / 2) - (mainState.state.currentCurve * 3) - 80;
-        const centerX = mainState.canvas.width / 2;
+        const perspectiveFactor = (mainState.current.state.poleY - 70) / (320 - 70);
+        const startX = ((basePos + min) / 2) - (mainState.current.state.currentCurve * 3) - 80;
+        const centerX = mainState.current.canvas.width / 2;
         const xPos = startX + 30 + (right ? rightPos : 0);
 
-        if (mainState.state.speed > 0) {
-            mainState.state.poleY += mainState.state.speed * 0.5;
+        if (mainState.current.state.speed > 0) {
+            mainState.current.state.poleY += mainState.current.state.speed * 0.5;
         }
 
-        if (mainState.state.poleY > 320) {
-            mainState.state.poleY = 70;
+        if (mainState.current.state.poleY > 320) {
+            mainState.current.state.poleY = 70;
         }
 
-        if (mainState.state.poleY < 320) {
+        if (mainState.current.state.poleY < 320) {
             const scale = 0.5 + (perspectiveFactor * 0.8);
 
             const baseCircleSize = 20;
@@ -216,7 +218,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
             ctx.fill();
 
             // Draw image inside circle if loaded
-            if (mainState.state.isImageLoaded) {
+            if (mainState.current.state.isImageLoaded) {
                 ctx.save(); // Save the current context state
 
                 // Create circular clipping path
@@ -231,7 +233,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
 
                 // Draw the image
                 ctx.drawImage(
-                    mainState.state.poleImage,
+                    mainState.current.state.poleImage,
                     imageX,
                     imageY,
                     imageSize,
@@ -261,7 +263,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
         }
 
         // draw pointer
-        angle = map(mainState.state.speed, 0, mainState.state.car.maxSpeed, 90, 360);
+        angle = map(mainState.current.state.speed, 0, mainState.current.state.car.maxSpeed, 90, 360);
         drawPointer(ctx, color, 50, centerX, centerY, angle);
     }
 
@@ -306,67 +308,67 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
     }
 
     function calcMovement() {
-        const move = mainState.state.speed * 0.01;
+        const move = mainState.current.state.speed * 0.01;
         let newCurve = 0;
 
-        if (mainState.state.keypress.up) {
-            mainState.state.speed += mainState.state.car.acc - (mainState.state.speed * 0.015);
-        } else if (mainState.state.speed > 0) {
-            mainState.state.speed -= mainState.state.car.friction;
+        if (mainState.current.state.keypress.up) {
+            mainState.current.state.speed += mainState.current.state.car.acc - (mainState.current.state.speed * 0.015);
+        } else if (mainState.current.state.speed > 0) {
+            mainState.current.state.speed -= mainState.current.state.car.friction;
         }
 
-        if (mainState.state.keypress.down && mainState.state.speed > 0) {
-            mainState.state.speed -= 1;
+        if (mainState.current.state.keypress.down && mainState.current.state.speed > 0) {
+            mainState.current.state.speed -= 1;
         }
 
         // Left and right
-        mainState.state.xpos -= (mainState.state.currentCurve * mainState.state.speed) * 0.005;
+        mainState.current.state.xpos -= (mainState.current.state.currentCurve * mainState.current.state.speed) * 0.005;
 
-        if (mainState.state.speed) {
-            if (mainState.state.keypress.left) {
-                mainState.state.xpos += (Math.abs(mainState.state.turn) + 7 + (mainState.state.speed > mainState.state.car.maxSpeed / 4 ? (mainState.state.car.maxSpeed - (mainState.state.speed / 2)) : mainState.state.speed)) * 0.4;
-                mainState.state.turn -= 2;
+        if (mainState.current.state.speed) {
+            if (mainState.current.state.keypress.left) {
+                mainState.current.state.xpos += (Math.abs(mainState.current.state.turn) + 7 + (mainState.current.state.speed > mainState.current.state.car.maxSpeed / 4 ? (mainState.current.state.car.maxSpeed - (mainState.current.state.speed / 2)) : mainState.current.state.speed)) * 0.4;
+                mainState.current.state.turn -= 2;
             }
 
-            if (mainState.state.keypress.right) {
-                mainState.state.xpos -= (Math.abs(mainState.state.turn) + 7 + (mainState.state.speed > mainState.state.car.maxSpeed / 4 ? (mainState.state.car.maxSpeed - (mainState.state.speed / 2)) : mainState.state.speed)) * 0.4;
-                mainState.state.turn += 2;
+            if (mainState.current.state.keypress.right) {
+                mainState.current.state.xpos -= (Math.abs(mainState.current.state.turn) + 7 + (mainState.current.state.speed > mainState.current.state.car.maxSpeed / 4 ? (mainState.current.state.car.maxSpeed - (mainState.current.state.speed / 2)) : mainState.current.state.speed)) * 0.4;
+                mainState.current.state.turn += 2;
             }
 
-            if (mainState.state.turn !== 0 && !mainState.state.keypress.left && !mainState.state.keypress.right) {
-                mainState.state.turn += mainState.state.turn > 0 ? -0.25 : 0.25;
+            if (mainState.current.state.turn !== 0 && !mainState.current.state.keypress.left && !mainState.current.state.keypress.right) {
+                mainState.current.state.turn += mainState.current.state.turn > 0 ? -0.25 : 0.25;
             }
         }
 
-        mainState.state.turn = clamp(mainState.state.turn, -5, 5);
-        mainState.state.speed = clamp(mainState.state.speed, 0, mainState.state.car.maxSpeed);
+        mainState.current.state.turn = clamp(mainState.current.state.turn, -5, 5);
+        mainState.current.state.speed = clamp(mainState.current.state.speed, 0, mainState.current.state.car.maxSpeed);
 
         // section
-        mainState.state.section -= mainState.state.speed;
+        mainState.current.state.section -= mainState.current.state.speed;
 
-        if (mainState.state.section < 0) {
-            mainState.state.section = randomRange(1000, 9000);
+        if (mainState.current.state.section < 0) {
+            mainState.current.state.section = randomRange(1000, 9000);
 
             newCurve = randomRange(-50, 50);
 
-            if (Math.abs(mainState.state.curve - newCurve) < 20) {
+            if (Math.abs(mainState.current.state.curve - newCurve) < 20) {
                 newCurve = randomRange(-50, 50);
             }
 
-            mainState.state.curve = newCurve;
+            mainState.current.state.curve = newCurve;
         }
 
-        if (mainState.state.currentCurve < mainState.state.curve && move < Math.abs(mainState.state.currentCurve - mainState.state.curve)) {
-            mainState.state.currentCurve += move;
-        } else if (mainState.state.currentCurve > mainState.state.curve && move < Math.abs(mainState.state.currentCurve - mainState.state.curve)) {
-            mainState.state.currentCurve -= move;
+        if (mainState.current.state.currentCurve < mainState.current.state.curve && move < Math.abs(mainState.current.state.currentCurve - mainState.current.state.curve)) {
+            mainState.current.state.currentCurve += move;
+        } else if (mainState.current.state.currentCurve > mainState.current.state.curve && move < Math.abs(mainState.current.state.currentCurve - mainState.current.state.curve)) {
+            mainState.current.state.currentCurve -= move;
         }
 
-        if (Math.abs(mainState.state.xpos) > 450) {
-            mainState.state.speed = 0; // park car
+        if (Math.abs(mainState.current.state.xpos) > 450) {
+            mainState.current.state.speed = 0; // park car
         }
 
-        mainState.state.xpos = clamp(mainState.state.xpos, -550, 550);
+        mainState.current.state.xpos = clamp(mainState.current.state.xpos, -550, 550);
     }
 
     function keyUp(e) {
@@ -383,19 +385,19 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
         }
 
         if (e.keyCode === 37) {
-            mainState.state.keypress.left = isKeyDown;
+            mainState.current.state.keypress.left = isKeyDown;
         }
 
         if (e.keyCode === 999) {
-            mainState.state.keypress.up = isKeyDown;
+            mainState.current.state.keypress.up = isKeyDown;
         }
 
         if (e.keyCode === 39) {
-            mainState.state.keypress.right = isKeyDown;
+            mainState.current.state.keypress.right = isKeyDown;
         }
 
         if (e.keyCode === 990) {
-            mainState.state.keypress.down = isKeyDown;
+            mainState.current.state.keypress.down = isKeyDown;
         }
     }
 
@@ -420,63 +422,63 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
     }
 
     function drawBg() {
-        mainState.ctx.fillStyle = mainState.colors.sky;
-        mainState.ctx.fillRect(0, 0, mainState.canvas.width, mainState.settings.skySize);
+        mainState.current.ctx.fillStyle = mainState.current.colors.sky;
+        mainState.current.ctx.fillRect(0, 0, mainState.current.canvas.width, mainState.current.settings.skySize);
         drawMountain(0, 60, 200);
         drawMountain(280, 40, 200);
         drawMountain(400, 80, 200);
         drawMountain(550, 60, 200);
 
 
-        mainState.storage.bg = mainState.ctx.getImageData(0, 0, mainState.canvas.width, mainState.canvas.height);
+        mainState.current.storage.bg = mainState.current.ctx.getImageData(0, 0, mainState.current.canvas.width, mainState.current.canvas.height);
     }
 
     function drawMountain(pos, height, width) {
-        mainState.ctx.fillStyle = mainState.colors.mountains;
-        mainState.ctx.strokeStyle = mainState.colors.mountains;
-        mainState.ctx.lineJoin = "round";
-        mainState.ctx.lineWidth = 20;
-        mainState.ctx.beginPath();
-        mainState.ctx.moveTo(pos, mainState.settings.skySize);
-        mainState.ctx.lineTo(pos + (width / 2), mainState.settings.skySize - height);
-        mainState.ctx.lineTo(pos + width, mainState.settings.skySize);
-        mainState.ctx.closePath();
-        mainState.ctx.stroke();
-        mainState.ctx.fill();
+        mainState.current.ctx.fillStyle = mainState.current.colors.mountains;
+        mainState.current.ctx.strokeStyle = mainState.current.colors.mountains;
+        mainState.current.ctx.lineJoin = "round";
+        mainState.current.ctx.lineWidth = 20;
+        mainState.current.ctx.beginPath();
+        mainState.current.ctx.moveTo(pos, mainState.current.settings.skySize);
+        mainState.current.ctx.lineTo(pos + (width / 2), mainState.current.settings.skySize - height);
+        mainState.current.ctx.lineTo(pos + width, mainState.current.settings.skySize);
+        mainState.current.ctx.closePath();
+        mainState.current.ctx.stroke();
+        mainState.current.ctx.fill();
     }
 
     function drawSky() {
-        mainState.ctx.fillStyle = mainState.colors.sky;
-        mainState.ctx.fillRect(0, 0, mainState.canvas.width, mainState.settings.skySize);
+        mainState.current.ctx.fillStyle = mainState.current.colors.sky;
+        mainState.current.ctx.fillRect(0, 0, mainState.current.canvas.width, mainState.current.settings.skySize);
     }
 
     function drawRoad(min, max, squishFactor, color) {
-        const basePos = mainState.canvas.width + mainState.state.xpos;
+        const basePos = mainState.current.canvas.width + mainState.current.state.xpos;
 
-        mainState.ctx.fillStyle = color;
-        mainState.ctx.beginPath();
-        mainState.ctx.moveTo(((basePos + min) / 2) - (mainState.state.currentCurve * 3), mainState.settings.skySize);
-        mainState.ctx.quadraticCurveTo((((basePos / 2) + min)) + (mainState.state.currentCurve / 3) + squishFactor, mainState.settings.skySize + 52, (basePos + max) / 2, mainState.canvas.height);
-        mainState.ctx.lineTo((basePos - max) / 2, mainState.canvas.height);
-        mainState.ctx.quadraticCurveTo((((basePos / 2) - min)) + (mainState.state.currentCurve / 3) - squishFactor, mainState.settings.skySize + 52, ((basePos - min) / 2) - (mainState.state.currentCurve * 3), mainState.settings.skySize);
-        mainState.ctx.closePath();
-        mainState.ctx.fill();
+        mainState.current.ctx.fillStyle = color;
+        mainState.current.ctx.beginPath();
+        mainState.current.ctx.moveTo(((basePos + min) / 2) - (mainState.current.state.currentCurve * 3), mainState.current.settings.skySize);
+        mainState.current.ctx.quadraticCurveTo((((basePos / 2) + min)) + (mainState.current.state.currentCurve / 3) + squishFactor, mainState.current.settings.skySize + 52, (basePos + max) / 2, mainState.current.canvas.height);
+        mainState.current.ctx.lineTo((basePos - max) / 2, mainState.current.canvas.height);
+        mainState.current.ctx.quadraticCurveTo((((basePos / 2) - min)) + (mainState.current.state.currentCurve / 3) - squishFactor, mainState.current.settings.skySize + 52, ((basePos - min) / 2) - (mainState.current.state.currentCurve * 3), mainState.current.settings.skySize);
+        mainState.current.ctx.closePath();
+        mainState.current.ctx.fill();
     }
 
     function drawCar() {
         const carWidth = 160,
             carHeight = 50,
-            carX = (mainState.canvas.width / 2) - (carWidth / 2),
+            carX = (mainState.current.canvas.width / 2) - (carWidth / 2),
             carY = 320;
 
         // shadow
-        roundedRect(mainState.ctx, "rgba(0, 0, 0, 0.35)", carX - 1 + mainState.state.turn, carY + (carHeight - 35), carWidth + 10, carHeight, 9);
+        roundedRect(mainState.current.ctx, "rgba(0, 0, 0, 0.35)", carX - 1 + mainState.current.state.turn, carY + (carHeight - 35), carWidth + 10, carHeight, 9);
 
         // tires
-        roundedRect(mainState.ctx, "#111", carX, carY + (carHeight - 30), 30, 40, 6);
-        roundedRect(mainState.ctx, "#111", (carX - 22) + carWidth, carY + (carHeight - 30), 30, 40, 6);
+        roundedRect(mainState.current.ctx, "#111", carX, carY + (carHeight - 30), 30, 40, 6);
+        roundedRect(mainState.current.ctx, "#111", (carX - 22) + carWidth, carY + (carHeight - 30), 30, 40, 6);
 
-        drawCarBody(mainState.ctx);
+        drawCarBody(mainState.current.ctx);
     }
 
     function drawCarBody(ctx) {
@@ -485,15 +487,15 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
         let lightsY = 0;
 
         /* Front */
-        roundedRect(mainState.ctx, "#C2C2C2", startX + 6 + (mainState.state.turn * 1.1), startY - 18, 146, 40, 18);
+        roundedRect(mainState.current.ctx, "#C2C2C2", startX + 6 + (mainState.current.state.turn * 1.1), startY - 18, 146, 40, 18);
 
         ctx.beginPath();
         ctx.lineWidth = "12";
         ctx.fillStyle = "#FFFFFF";
         ctx.strokeStyle = "#FFFFFF";
         ctx.moveTo(startX + 30, startY);
-        ctx.lineTo(startX + 46 + mainState.state.turn, startY - 25);
-        ctx.lineTo(startX + 114 + mainState.state.turn, startY - 25);
+        ctx.lineTo(startX + 46 + mainState.current.state.turn, startY - 25);
+        ctx.lineTo(startX + 114 + mainState.current.state.turn, startY - 25);
         ctx.lineTo(startX + 130, startY);
         ctx.fill();
         ctx.stroke();
@@ -504,11 +506,11 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
         ctx.beginPath();
         ctx.fillStyle = "#DEE0E2";
         ctx.strokeStyle = "#DEE0E2";
-        ctx.moveTo(startX + 2, startY + 12 + (mainState.state.turn * 0.2));
-        ctx.lineTo(startX + 159, startY + 12 + (mainState.state.turn * 0.2));
-        ctx.quadraticCurveTo(startX + 166, startY + 35, startX + 159, startY + 55 + (mainState.state.turn * 0.2));
-        ctx.lineTo(startX + 2, startY + 55 - (mainState.state.turn * 0.2));
-        ctx.quadraticCurveTo(startX - 5, startY + 32, startX + 2, startY + 12 - (mainState.state.turn * 0.2));
+        ctx.moveTo(startX + 2, startY + 12 + (mainState.current.state.turn * 0.2));
+        ctx.lineTo(startX + 159, startY + 12 + (mainState.current.state.turn * 0.2));
+        ctx.quadraticCurveTo(startX + 166, startY + 35, startX + 159, startY + 55 + (mainState.current.state.turn * 0.2));
+        ctx.lineTo(startX + 2, startY + 55 - (mainState.current.state.turn * 0.2));
+        ctx.quadraticCurveTo(startX - 5, startY + 32, startX + 2, startY + 12 - (mainState.current.state.turn * 0.2));
         ctx.fill();
         ctx.stroke();
 
@@ -517,8 +519,8 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
         ctx.fillStyle = "#DEE0E2";
         ctx.strokeStyle = "#DEE0E2";
         ctx.moveTo(startX + 30, startY);
-        ctx.lineTo(startX + 40 + (mainState.state.turn * 0.7), startY - 15);
-        ctx.lineTo(startX + 120 + (mainState.state.turn * 0.7), startY - 15);
+        ctx.lineTo(startX + 40 + (mainState.current.state.turn * 0.7), startY - 15);
+        ctx.lineTo(startX + 120 + (mainState.current.state.turn * 0.7), startY - 15);
         ctx.lineTo(startX + 130, startY);
         ctx.fill();
         ctx.stroke();
@@ -533,18 +535,18 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
             ctx.arc(startX + xPos, startY + 20 + lightsY, 6, 0, Math.PI * 2, true);
             ctx.closePath();
             ctx.fill();
-            lightsY += mainState.state.turn * 0.05;
+            lightsY += mainState.current.state.turn * 0.05;
         });
 
         ctx.lineWidth = "9";
         ctx.fillStyle = "#222222";
         ctx.strokeStyle = "#444";
 
-        roundedRect(mainState.ctx, "#FFF", startX + 60, startY + 25, 40, 18, 3, true, 0.05);
+        roundedRect(mainState.current.ctx, "#FFF", startX + 60, startY + 25, 40, 18, 3, true, 0.05);
     }
 
     function roundedRect(ctx, color, x, y, width, height, radius, turn, turneffect) {
-        const skew = turn === true ? mainState.state.turn * turneffect : 0;
+        const skew = turn === true ? mainState.current.state.turn * turneffect : 0;
 
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -573,22 +575,22 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
     }
 
     function drawGround(ctx, offset, lightColor, darkColor, width) {
-        let pos = (mainState.settings.skySize - mainState.settings.ground.min) + offset, stepSize = 1, drawDark = mainState.state.startDark, firstRow = true;
+        let pos = (mainState.current.settings.skySize - mainState.current.settings.ground.min) + offset, stepSize = 1, drawDark = mainState.current.state.startDark, firstRow = true;
         ctx.fillStyle = lightColor;
-        ctx.fillRect(0, mainState.settings.skySize, width, mainState.settings.ground.size);
+        ctx.fillRect(0, mainState.current.settings.skySize, width, mainState.current.settings.ground.size);
 
         ctx.fillStyle = darkColor;
-        while (pos <= mainState.canvas.height) {
-            stepSize = norm(pos, mainState.settings.skySize, mainState.canvas.height) * mainState.settings.ground.max;
-            if (stepSize < mainState.settings.ground.min) {
-                stepSize = mainState.settings.ground.min;
+        while (pos <= mainState.current.canvas.height) {
+            stepSize = norm(pos, mainState.current.settings.skySize, mainState.current.canvas.height) * mainState.current.settings.ground.max;
+            if (stepSize < mainState.current.settings.ground.min) {
+                stepSize = mainState.current.settings.ground.min;
             }
 
             if (drawDark) {
                 if (firstRow) {
-                    ctx.fillRect(0, mainState.settings.skySize, width, stepSize - (offset > mainState.settings.ground.min ? mainState.settings.ground.min : mainState.settings.ground.min - offset));
+                    ctx.fillRect(0, mainState.current.settings.skySize, width, stepSize - (offset > mainState.current.settings.ground.min ? mainState.current.settings.ground.min : mainState.current.settings.ground.min - offset));
                 } else {
-                    ctx.fillRect(0, pos < mainState.settings.skySize ? mainState.settings.skySize : pos, width, stepSize);
+                    ctx.fillRect(0, pos < mainState.current.settings.skySize ? mainState.current.settings.skySize : pos, width, stepSize);
                 }
             }
 
@@ -601,7 +603,11 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
 
     return (
         <>
-            <GameStats ref={gameStatsRef} onGameOver={() => { quizControllerRef.current?.onGameOver() }} />
+        <Sound ref={audioRef}/>
+            <GameStats ref={gameStatsRef} onGameOver={() => { 
+                quizControllerRef.current?.onGameOver();
+                audioRef?.current?.pause();
+                }} />
             <div className={'bodyDiv'}>
 
                 <canvas id="myCanvas" height="450" width="750"></canvas>
@@ -609,6 +615,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
                 <QuizController
                     ref={quizControllerRef}
                     onRestart={() => {
+                        audioRef?.current?.play();
                         reset();
                     }}
                     onSubmit={(isCorrect, score) => {
@@ -617,9 +624,9 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
                     }}
                     onQuestionLoad={(quiz) => {
                         // Update the pole image URL
-                        mainState.state.poleImage.src = getImage(quiz.metadata.imageFile);
-                        mainState.state.poleImage.onload = () => {
-                            mainState.state.isImageLoaded = true;
+                        mainState.current.state.poleImage.src = getImage(quiz.metadata.imageFile);
+                        mainState.current.state.poleImage.onload = () => {
+                            mainState.current.state.isImageLoaded = true;
                         };
                     }}
                 />

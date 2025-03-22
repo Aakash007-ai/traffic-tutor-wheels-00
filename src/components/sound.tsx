@@ -1,26 +1,27 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import tune from "../assets/audio/tune.mp3";
 
-// Ref-enabled Sound
-const Sound = () => {
+const Sound = forwardRef((props, ref) => {
   const soundRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => {
-    setTimeout(() => {
-      soundRef.current?.play();
-    }, 1000);
-    // soundRef.current.play();
-  }, []);
+
+  useImperativeHandle(ref, () => ({
+    play: () => {
+      if (soundRef.current) {
+        soundRef.current.play();
+      }
+    },
+    pause: () => {
+      if (soundRef.current) {
+        soundRef.current.pause();
+      }
+    },
+  }));
 
   return (
-    <div className={"absolute top-20 right-20 "}>
-      <audio
-        ref={soundRef}
-        src={tune}
-        autoPlay={true}
-        loop={true}
-        preload="auto"
-      />
+    <div className="absolute top-20 right-20">
+      <audio ref={soundRef} src={tune} loop preload="auto" />
     </div>
   );
-};
+});
+
 export default Sound;

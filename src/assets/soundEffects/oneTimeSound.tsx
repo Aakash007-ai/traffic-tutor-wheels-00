@@ -5,9 +5,9 @@ import React, {
   useRef,
 } from "react";
 
-import correctSound from "../../assets/audio/car-horn-90973.mp3";
-import errorSound from "../../assets/audio/car-horn-90973.mp3";
-import gameOverSound from "../../assets/audio/car-horn-90973.mp3";
+import correctSound from "../../assets/audio/correct.mp3";
+import errorSound from "../../assets/audio/error.mp3";
+import gameOverSound from "../../assets/audio/gameOver.mp3";
 
 // Define the exposed methods for ref
 export interface SoundComponentRef {
@@ -25,8 +25,8 @@ const OneTimeSound = forwardRef<SoundComponentRef, ISoundComponentProp>(
       type === "correct"
         ? correctSound
         : type === "error"
-        ? errorSound
-        : gameOverSound;
+          ? errorSound
+          : gameOverSound;
 
     useImperativeHandle(ref, () => ({
       playSoundOnce: () => {
@@ -40,7 +40,7 @@ const OneTimeSound = forwardRef<SoundComponentRef, ISoundComponentProp>(
           ref={SoundRef}
           src={soundType}
           autoPlay={false}
-          loop={true}
+          loop={false}
           preload="auto"
         />
       </div>

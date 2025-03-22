@@ -129,7 +129,7 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
         {gameOver && (
           <GameOverPopup
             toggleLang={() => {}}
-            score={60}
+            score={0}
             onPressStart={() => {
               setGameOver(false);
               currentQuizIndex.current = 0;
