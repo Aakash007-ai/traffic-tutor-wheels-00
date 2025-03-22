@@ -16,7 +16,7 @@ export interface RoadComponentRef {
     turnRight: (keyUp: boolean) => void;
 }
 const rightPos = 100;
-const NEXT_QUIZ_TIME = 3000;
+const NEXT_QUIZ_TIME = 5000;
 
 // Ref-enabled RoadComponent
 const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right = false }, ref) => {
@@ -118,7 +118,6 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
         mainState.signCtx.fillRect(100, 10, 40, 100);
         drawBg();
         draw();
-        keyDown({ keyCode: 999, preventDefault: () => { } });
 
 
     }, []);
