@@ -10,13 +10,14 @@ import { OptionItem } from "../ui/quizModal/OptionItem";
 import OptionsPopUp from "../OptionsPopUp/OptionsPopUp";
 export interface IQuizControllerProp {
   direction?: "left" | "right" | "up" | "down";
-  onSubmit: (isCorrect: boolean) => void;
+  onSubmit: (isCorrect: boolean, score: number) => void;
   onQuestionLoad: (quiz: GameQuestion) => void;
 }
 
 // Define the exposed methods for ref
 export interface QuizControllerRef {
   loadNext: () => void;
+  onGameOver: () => void;
 }
 
 export interface GameQuestion {
@@ -57,7 +58,7 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
     const currentQuizIndex = useRef(0);
 
     const handleAnswer = (answerIndex) => {
-      onSubmit(`${currentQuestion.metadata.ans}` === `${answerIndex}`);
+      onSubmit(`${currentQuestion.metadata.ans}` === `${answerIndex}`, Number(currentQuestion?.metadata?.score || 0));
       currentQuizIndex.current = Math.min(
         currentQuizIndex.current + 1,
         allQuizs.current.length - 1
@@ -74,6 +75,7 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
           alert("error catched while loading next");
         }
       },
+      onGameOver: () => {},
     }));
 
     useEffect(() => {

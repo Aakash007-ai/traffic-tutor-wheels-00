@@ -93,7 +93,7 @@ const Quiz: React.FC = () => {
 
       try {
         const response = await fetch(
-          "https://safeway-hackers-l3ijlsr64a-uc.a.run.app/api/v1/user",
+          "https://safeway-hackers-466060604919.us-central1.run.app/api/v1/user",
           {
             method: "GET",
             headers: {
@@ -164,9 +164,11 @@ const Quiz: React.FC = () => {
   useEffect(() => {
     if (selectedModule === "Module1" && score > highestModule1Score) {
       setHighestModule1Score(score);
+      const maxScore = selectedModule === "GeneralTrafficRules" ? 20 : 48;
+      const scorePercentage = (score / maxScore) * 100;
 
       // Unlock Module 2 if score is above 80%
-      if (score >= 80) {
+      if (scorePercentage >= 80) {
         setModule2Unlocked(true);
         toast.success("Module 2 unlocked!");
       }
@@ -181,9 +183,11 @@ const Quiz: React.FC = () => {
     // Update highest score for Module 1
     if (selectedModule === "Module1" && score > highestModule1Score) {
       setHighestModule1Score(score);
+      const maxScore = selectedModule === "GeneralTrafficRules" ? 20 : 48;
+      const scorePercentage = (score / maxScore) * 100;
 
       // Unlock Module 2 if score is above 80%
-      if (score >= 80) {
+      if (scorePercentage >= 80) {
         setModule2Unlocked(true);
         toast.success("Module 2 unlocked!");
       }
@@ -357,11 +361,6 @@ const Quiz: React.FC = () => {
                         {!module2Unlocked && ` (score 80% to unlock)`}
                       </button>
                     ) : null}
-                    {gameOver && highestModule1Score > 0 && (
-                      <p className="text-sm text-gray-300 mt-2">
-                        Highest Beginner Score: {highestModule1Score}%
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>

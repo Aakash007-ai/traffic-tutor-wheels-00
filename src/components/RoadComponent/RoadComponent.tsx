@@ -2,12 +2,12 @@ import React, { forwardRef, useState, useImperativeHandle, useRef, useEffect } f
 import './RoadComponent.css';
 import QuizController, { QuizControllerRef } from '../QuizController/QuizController';
 import { getImage } from '../QuizController/QuizControllerImage';
+import GameStats from '../GameStats/GameStats';
 
 
 export interface IRoadComponentProp {
     direction?: 'left' | 'right' | 'up' | 'down';
     right?: boolean;
-    onDataChange: ({ score, lives }) => void;
 }
 
 // Define the exposed methods for ref
@@ -19,8 +19,9 @@ const rightPos = 100;
 const NEXT_QUIZ_TIME = 3000;
 
 // Ref-enabled RoadComponent
-const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up', right = false, onDataChange }, ref) => {
+const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right = false }, ref) => {
     const showPole = useRef(false);
+    const gameStatsRef = useRef(null);
     const quizControllerRef = useRef<QuizControllerRef>(null);
 
     const mainState = {
@@ -600,25 +601,30 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
     }
 
     return (
-        <div className={'bodyDiv'}>
-            <canvas id="myCanvas" height="450" width="750"></canvas>
-            <QuizController
-                ref={quizControllerRef}
-                onSubmit={(isCorrect) => {
-                    if (isCorrect) {
-                        //onDataChange(prev => ({prev.}));
-                    }
-                    reset();
-                }}
-                onQuestionLoad={(quiz) => {
-                    // Update the pole image URL
-                    mainState.state.poleImage.src = getImage(quiz.metadata.imageFile);
-                    mainState.state.poleImage.onload = () => {
-                        mainState.state.isImageLoaded = true;
-                    };
-                }}
-            />
-        </div>
+        <>
+            <GameStats ref={gameStatsRef} onGameOver={() => { alert('game over') }} />
+            <div className={'bodyDiv'}>
+
+                <canvas id="myCanvas" height="450" width="750"></canvas>
+
+                <QuizController
+                    ref={quizControllerRef}
+                    onSubmit={(isCorrect, score) => {
+                        reset();
+                        gameStatsRef?.current?.setStats(isCorrect, score)
+                    }}
+                    onQuestionLoad={(quiz) => {
+                        // Update the pole image URL
+                        mainState.state.poleImage.src = getImage(quiz.metadata.imageFile);
+                        mainState.state.poleImage.onload = () => {
+                            mainState.state.isImageLoaded = true;
+                        };
+                    }}
+                />
+
+            </div>
+        </>
+
     );
 });
 
