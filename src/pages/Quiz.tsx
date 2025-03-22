@@ -6,6 +6,7 @@ import { Heart, Zap, Trophy, Car } from "lucide-react";
 import { toast } from "sonner";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import RoadGameComponent from "@/components/RoadGameComponent";
+import { ProctoringSystem } from "@/components/Proctoring";
 
 // Define the Question interface
 interface Question {
@@ -113,6 +114,7 @@ const Quiz: React.FC = () => {
   const [lastExplanation, setLastExplanation] = useState<string | null>(null);
   const [questionActive, setQuestionActive] = useState(false);
   const [firstSignSpawned, setFirstSignSpawned] = useState(false);
+  const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
 
   // Spawn first sign immediately when game starts
   useEffect(() => {
@@ -128,6 +130,7 @@ const Quiz: React.FC = () => {
   // Increase distance over time
 
   const handleStartGame = () => {
+    if(!isProctoringEnabled) return;
     setGameStarted(true);
     setGameOver(false);
     setScore(0);
@@ -182,10 +185,13 @@ const Quiz: React.FC = () => {
   };
 
   return (
+    <>      
     <div className="min-h-screen w-full bg-background pt-20 pb-16">
-      <Header />
 
+     
+      <Header />
       <main className="container max-w-7xl mx-auto px-4">
+        {/* game over condition */}
         {!gameStarted || gameOver ? (
           <AnimatedTransition animation="scale">
             <Card glass>
@@ -289,6 +295,8 @@ const Quiz: React.FC = () => {
         )}
       </main>
     </div>
+
+    <div style={{position: "absolute", bottom: 0, left: 0}}><ProctoringSystem onStatusChange={setIsProctoringEnabled} /></div></>
   );
 };
 

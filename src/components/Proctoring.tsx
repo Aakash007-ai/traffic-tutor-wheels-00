@@ -3,7 +3,7 @@ import Webcam from "react-webcam";
 import swal from "sweetalert";
 import * as posenet from "@tensorflow-models/posenet";
 
-export const ProctoringSystem = () => {
+export const ProctoringSystem = ({ onStatusChange }) => {
     const webcamRef = useRef(null);
     const canvasRef = useRef(null);
     const absenceRef = useRef(0);
@@ -22,6 +22,14 @@ export const ProctoringSystem = () => {
         cheating: 0,
         absence: 0
     });
+
+    const isProctoringEnabled = Object.values(alertCounts).every(count => count === 0);
+
+    useEffect(() => {
+        if (onStatusChange) {
+            onStatusChange(isProctoringEnabled);
+        }
+    }, [alertCounts, onStatusChange]);
 
     const showAlert = (title, text, icon, alertType) => {
         if (isAlertVisibleRef.current) return;
@@ -154,6 +162,8 @@ export const ProctoringSystem = () => {
             const dataArray = new Uint8Array(bufferLength);
 
             let ambientNoiseLevel = null;
+            let lastNoiseAlertTime = 0;
+            const noiseAlertThrottleTime = 100000; // 10 seconds
 
             setInterval(() => {
                 analyser.getByteFrequencyData(dataArray);
@@ -163,8 +173,10 @@ export const ProctoringSystem = () => {
                     ambientNoiseLevel = averageVolume;
                 }
 
-                if (averageVolume > ambientNoiseLevel + 15) {
+                const currentTime = Date.now();
+                if (averageVolume > ambientNoiseLevel + 15 && (currentTime - lastNoiseAlertTime) > noiseAlertThrottleTime) {
                     showAlert("Background Noise Detected!", "Please stay in a quiet environment.", "error", "backgroundNoise");
+                    lastNoiseAlertTime = currentTime;
                 }
             }, 3000);
         });
@@ -174,14 +186,14 @@ export const ProctoringSystem = () => {
         <div>
             <Webcam ref={webcamRef} style={{ width: 100, height: 100 }} />
             <canvas ref={canvasRef} style={{ width: 640, height: 480 }} />
-            <div>
+            {/* <div>
                 <p>Alert Counts:</p>
                 <ul>
                     {Object.entries(alertCounts).map(([key, value]) => (
                         <li key={key}>{key.replace(/([A-Z])/g, ' $1')}: {value}</li>
                     ))}
                 </ul>
-            </div>
+            </div> */}
         </div>
     );
 };
