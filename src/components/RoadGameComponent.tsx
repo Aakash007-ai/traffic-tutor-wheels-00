@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 // import { quizAppi } from "@/services";
 import CarComponent, { CarComponentRef } from './CarComponent/CarComponent';
 
+<<<<<<< Updated upstream
 import ZebraCrossing from './ui/ZebraCrossing';
 import compulsoryTurnLeft from './../assets/signs/compulsoryTurnLeft.png';
 import endOfSpeedRestriction from './../assets/signs/endOfSpeedRestriction.png';
@@ -33,6 +34,48 @@ const signImages = {
   'rightTurnProhibited.png': rightTurnProhibited,
   'stop.png': stop,
   'zebraLines.png': zebraLines
+=======
+import ZebraCrossing from "./ui/ZebraCrossing";
+import compulsoryTurnLeft from "./../assets/signs/compulsoryTurnLeft.png";
+import endOfSpeedRestriction from "./../assets/signs/endOfSpeedRestriction.png";
+import giveWay from "./../assets/signs/giveWay.png";
+import guardedLevelCross from "./../assets/signs/guardedLevelCross.png";
+import oneWay from "./../assets/signs/oneWay.png";
+import parkingOnTheRightAllowed from "./../assets/signs/parkingOnTheRightAllowed.png";
+import pedestrianCrossing from "./../assets/signs/pedestrianCrossing.png";
+import redLight from "./../assets/signs/redLight.png";
+import highway from "./../assets/signs/highway.jpg";
+import dr from "./../assets/signs/dr.jpg";
+import bike from "./../assets/signs/bike.jpg";
+
+import unregistered from "./../assets/signs/unregistered.jpg";
+import education from "./../assets/signs/education.jpg";
+import rightTurnProhibited from "./../assets/signs/rightTurnProhibited.png";
+import stop from "./../assets/signs/stop.png";
+import zebraLines from "./../assets/signs/zebraLines.png";
+import { QuizModal } from "./ui/quizModal";
+import { QuizQuestion } from "./ui/quizModal/types";
+import { OptionItem } from "./ui/quizModal/OptionItem";
+import quizAppi from "@/services";
+
+const signImages = {
+  "compulsoryTurnLeft.png": compulsoryTurnLeft,
+  "endOfSpeedRestriction.png": endOfSpeedRestriction,
+  "giveWay.png": giveWay,
+  "guardedLevelCross.png": guardedLevelCross,
+  "oneWay.png": oneWay,
+  "parkingOnTheRightAllowed.png": parkingOnTheRightAllowed,
+  "pedestrianCrossing.png": pedestrianCrossing,
+  "redLight.png": redLight,
+  "rightTurnProhibited.png": rightTurnProhibited,
+  "stop.png": stop,
+  "zebraLines.png": zebraLines,
+  "highway.jpg": highway,
+  "education.jpg": education,
+  "unregistered.jpg": unregistered,
+  "dr.jpg": dr,
+  "bike.jpg": bike,
+>>>>>>> Stashed changes
 };
 const sampleQuestion = {
   id: 'q1',

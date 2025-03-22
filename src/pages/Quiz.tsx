@@ -111,12 +111,12 @@ const Quiz: React.FC = () => {
         if (data && data.id) {
           setUserId(data.id);
           console.log("User data fetched:", data);
-          
+
           // Set highest score from user data
           if (data.maxScore) {
             setHighestModule1Score(data.maxScore);
           }
-          
+
           // Check if Module 2 should be unlocked based on completed levels
           if (data.completedLevels && data.completedLevels.includes(1)) {
             setModule2Unlocked(true);
@@ -215,7 +215,7 @@ const Quiz: React.FC = () => {
   };
 
   console.log("finalAnswers", finalAnswers);
-
+  console.log("selectedModule", selectedModule);
   const handleAnswerQuestion = (
     correct: boolean,
     question: Question,
@@ -250,6 +250,11 @@ const Quiz: React.FC = () => {
     }, 5000);
   };
 
+  useEffect(() => {
+    if (language === "ENGLISH") setSelectedModule("Module1");
+    else setSelectedModule("Module1_Hindi");
+  }, [language]);
+
   return (
     <>
       <div className="min-h-screen w-full bg-[#0f172a] text-white font-nunito pt-20 pb-16 relative overflow-hidden">
@@ -282,13 +287,13 @@ const Quiz: React.FC = () => {
 
           {!gameStarted || gameOver ? (
             <AnimatedTransition animation="scale">
-              <div className="relative glass-card p-8 md:p-10 rounded-2xl shadow-2xl backdrop-blur-lg bg-white/10 border border-white/20 mx-auto">
+              <div className="relative glass-card p-8 md:p-10 rounded-2xl w-[420px] shadow-2xl backdrop-blur-lg bg-white/10 border border-white/20 mx-auto">
                 {/* Smaller Toggle Button Positioned in Top Right */}
                 <div className="absolute top-4 right-4">
                   <div
-                    onClick={() =>
-                      setLanguage(language === "ENGLISH" ? "HINDI" : "ENGLISH")
-                    }
+                    onClick={() => {
+                      setLanguage(language === "ENGLISH" ? "HINDI" : "ENGLISH");
+                    }}
                     className="relative w-24 h-7 cursor-pointer rounded-full bg-white flex items-center transition duration-300 ease-in-out shadow-md px-1"
                   >
                     {/* Language Text Inside Toggle */}
