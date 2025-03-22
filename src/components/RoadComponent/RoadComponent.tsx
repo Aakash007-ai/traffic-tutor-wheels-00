@@ -16,6 +16,7 @@ const rightPos = 100;
 
 // Ref-enabled RoadComponent
 const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up', right = false }, ref) => {
+    const showPole = useRef(false);
     const mainState = {
         canvas: null,
         ctx: null,
@@ -76,6 +77,12 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
         }
     };
     useEffect(() => {
+        setTimeout(() => {
+            showPole.current = true;
+        },3000);
+    });
+
+    useEffect(() => {
         mainState.canvas = document.getElementsByTagName('canvas')[0];
         mainState.ctx = mainState.canvas.getContext('2d');
         mainState.canvas2 = document.createElement('canvas');
@@ -120,6 +127,12 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
 
     function draw() {
         setTimeout(function () {
+            const perspectiveFactor = (mainState.state.poleY - 70) / (320 - 70);
+            if (showPole.current && perspectiveFactor > 0.95) {
+                alert('Answer Quiz ')
+                console.log("true")
+                return;
+            } 
             calcMovement();
 
             //if(mainState.state.speed > 0) {
@@ -142,7 +155,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
             drawRoad(mainState.settings.road.min, mainState.settings.road.max, 10, mainState.colors.road);
             drawRoad(3, 24, 0, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
             drawCar();
-            drawPole(mainState.ctx, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
+            if(showPole.current) drawPole(mainState.ctx, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
             //drawHUD(mainState.ctx, 630, 340, mainState.colors.hud);
 
             requestAnimationFrame(draw);
