@@ -72,7 +72,8 @@ export const ClusterSignals = () => {
     }, [questions.isLoading, questions.data, questions.isSuccess]);
 
     return (
-        <div className="min-h-screen w-full bg-background pt-16 pb-16 flex flex-col items-center px-4 sm:px-6 md:px-8">
+        <div className="min-h-screen w-full bg-background pt-16 pb-16 flex flex-col items-center px-4 sm:px-6 md:px-8" style={{backgroundImage:"url('src/assets/images/cluster_image.png')" , backgroundSize: "cover", backgroundPosition: "center"}}>
+            
             <Header />
             <main className="w-full max-w-4xl">
                 {/* Game stats */}
@@ -101,7 +102,7 @@ export const ClusterSignals = () => {
                 {/* Question Display */}
                 {lives > 0 ? (
                     <AnimatedTransition animation="scale">
-                        <div className="relative p-4 bg-white rounded-lg shadow-lg">
+                        <div className="relative p-4 bg-white rounded-lg shadow-lg  " >
                             {shuffledQuestions.length > 0 && (
                                 <div className="flex flex-col gap-4">
                                     <div className="flex items-center gap-4">
@@ -109,7 +110,7 @@ export const ClusterSignals = () => {
                                         {/* <img src={`src/assets/images/cluster/${shuffledQuestions?.[currentQuestionIndex]?.metadata?.imageFile}`} alt="Warning" className="w-12 h-12 rounded-lg" /> */}
                                         <h2 className="text-lg font-semibold">{shuffledQuestions?.[currentQuestionIndex]?.name}</h2>
                                     </div>
-                                    <div className="flex flex-col gap-3">
+                                    <div className="flex flex-col gap-3" >
                                         {shuffledQuestions?.[currentQuestionIndex]?.options?.map((option) => (
                                             <OptionItem
                                                 key={option?.id}
