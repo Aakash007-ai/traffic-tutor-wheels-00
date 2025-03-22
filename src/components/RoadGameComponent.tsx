@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { quizAppi } from "@/services";
+// import { quizAppi } from "@/services";
 import CarComponent, { CarComponentRef } from "./CarComponent/CarComponent";
 
 import ZebraCrossing from "./ui/ZebraCrossing";
@@ -18,6 +18,7 @@ import zebraLines from "./../assets/signs/zebraLines.png";
 import { QuizModal } from "./ui/quizModal";
 import { QuizQuestion } from "./ui/quizModal/types";
 import { OptionItem } from "./ui/quizModal/OptionItem";
+import quizAppi from "@/services";
 
 const signImages = {
   "compulsoryTurnLeft.png": compulsoryTurnLeft,
@@ -64,7 +65,7 @@ const sampleQuestion = {
 };
 
 // Define the structure of the API response
-interface ApiQuestionData {
+export interface ApiQuestionData {
   id: number;
   name: string;
   type: string;

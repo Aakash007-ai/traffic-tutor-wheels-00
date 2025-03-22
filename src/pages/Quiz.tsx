@@ -7,7 +7,9 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import RoadGameComponent from '@/components/RoadGameComponent';
-import { quizAppi } from '../services/index.js';
+import { ProctoringSystem } from "@/components/Proctoring";
+import quizAppi from "@/services";
+// import { quizAppi } from '../services/index.js';
 import carImage from '../assets/images/landing_car.png';
 
 // Define the GameQuestion interface to match RoadGameComponent
@@ -70,6 +72,7 @@ const Quiz: React.FC = () => {
   const [module2Unlocked, setModule2Unlocked] = useState<boolean>(false);
   const [ssId, setssId] = useState(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
 
   // Fetch user data when component mounts
   useEffect(() => {
@@ -229,6 +232,7 @@ const Quiz: React.FC = () => {
   };
 
   return (
+    <>      
     <div className='min-h-screen w-full bg-[#0f172a] text-white font-nunito pt-20 pb-16 relative overflow-hidden'>
       {/* Background pattern */}
       <div className='absolute inset-0 bg-gradient-to-b from-[#0f172a] to-[#1e293b] z-0'></div>
@@ -252,9 +256,12 @@ const Quiz: React.FC = () => {
         </>
       )}
 
+
+     
       <Header />
 
       <main className='w-full mx-auto px-4 relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]'>
+          {/* game over condition */}
         {!gameStarted || gameOver ? (
           <AnimatedTransition animation='scale'>
             <div className='glass-card p-8 md:p-10 rounded-2xl shadow-2xl backdrop-blur-lg bg-white/10 border border-white/20 max-w-2xl w-full mx-auto'>
@@ -395,6 +402,8 @@ const Quiz: React.FC = () => {
         )}
       </main>
     </div>
+
+    <div style={{position: "absolute", bottom: 0, left: 0}}><ProctoringSystem onStatusChange={setIsProctoringEnabled} /></div></>
   );
 };
 
