@@ -602,13 +602,16 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ right 
 
     return (
         <>
-            <GameStats ref={gameStatsRef} onGameOver={() => { alert('game over') }} />
+            <GameStats ref={gameStatsRef} onGameOver={() => { quizControllerRef.current?.onGameOver() }} />
             <div className={'bodyDiv'}>
 
                 <canvas id="myCanvas" height="450" width="750"></canvas>
 
                 <QuizController
                     ref={quizControllerRef}
+                    onRestart={() => {
+                        reset();
+                    }}
                     onSubmit={(isCorrect, score) => {
                         reset();
                         gameStatsRef?.current?.setStats(isCorrect, score)

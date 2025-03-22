@@ -8,10 +8,12 @@ import React, {
 import quizAppi from "@/services";
 import { OptionItem } from "../ui/quizModal/OptionItem";
 import OptionsPopUp from "../OptionsPopUp/OptionsPopUp";
+import GameOverPopup from "../GameOverPopup/GameOverPopup";
 export interface IQuizControllerProp {
   direction?: "left" | "right" | "up" | "down";
   onSubmit: (isCorrect: boolean, score: number) => void;
   onQuestionLoad: (quiz: GameQuestion) => void;
+  onRestart: () => void;
 }
 
 // Define the exposed methods for ref
@@ -50,10 +52,11 @@ export interface GameQuestion {
 
 // Ref-enabled QuizController
 const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
-  ({ onSubmit, onQuestionLoad }, ref) => {
+  ({ onSubmit, onQuestionLoad, onRestart }, ref) => {
     const [currentQuestion, setCurrentQuestion] = useState<GameQuestion | null>(
       null
     );
+    const [gameOver, setGameOver] = useState(true);
     const allQuizs = useRef([]);
     const currentQuizIndex = useRef(0);
 
@@ -75,7 +78,9 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
           alert("error catched while loading next");
         }
       },
-      onGameOver: () => {},
+      onGameOver: () => {
+        setGameOver(true);
+      },
     }));
 
     useEffect(() => {
@@ -112,12 +117,21 @@ const QuizController = forwardRef<QuizControllerRef, IQuizControllerProp>(
 
     return (
       <div>
-        {currentQuestion && (
+        {currentQuestion && !gameOver && (
           <OptionsPopUp
             currentQuestion={currentQuestion}
             handleAnswer={handleAnswer}
           />
         )}
+        {gameOver && <GameOverPopup
+        toggleLang={() => {}}
+        score={60}
+        onPressStart={() => {
+            setGameOver(false);
+            currentQuizIndex.current = 0;
+            onQuestionLoad(allQuizs.current[0]);
+            onRestart();
+        }} />}
       </div>
     );
   }
