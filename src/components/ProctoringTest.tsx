@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ProctoringSystem } from "./Proctoring";
 
 export const ProctorTestScreen = () => {
-    const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
+    const [isProctoringEnabled, setIsProctoringEnabled] = useState(true);
     useEffect(()=>{
         console.log("Proctoring enabled: -------------", isProctoringEnabled);
     },[isProctoringEnabled])
@@ -10,7 +10,7 @@ export const ProctorTestScreen = () => {
         <div>
             <h1>Online Exam</h1>
             <p>Please follow all proctoring guidelines.</p>
-            <ProctoringSystem onStatusChange={setIsProctoringEnabled} />
+            <ProctoringSystem setIsProctoringEnabled={setIsProctoringEnabled} isGameStarted={true} />
         </div>
     );
 };

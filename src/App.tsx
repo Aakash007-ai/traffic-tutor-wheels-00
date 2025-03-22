@@ -14,6 +14,7 @@ import SecondStage from "./pages/SecondStage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ProctoringSystem } from "./components/Proctoring";
 import { ClusterSignals } from "./pages/ClusterQuestions";
+import { ProctorTestScreen } from "./components/ProctoringTest";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,11 @@ const App = () => (
               <UserAuth />
             </ProtectedRoute>
           } />
+
+          <Route path="/proctoring" element={<ProctorTestScreen />} />
+
+
+          <Route path="/login" element={<UserAuth />} />
           <Route path="/stage" element={<SecondStage />} />
           <Route path="/cluster-signals" element={<ClusterSignals />} />
           {/* <Route path='/test' element={<Test />} /> */}

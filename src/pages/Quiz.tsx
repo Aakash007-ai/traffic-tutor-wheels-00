@@ -73,6 +73,7 @@ const Quiz: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
   const [language, setLanguage] = useState("ENGLISH");
+  const [proctorGate, setProctorGate] = useState(true);
 
   // Fetch user data when component mounts
   useEffect(() => {
@@ -424,17 +425,16 @@ const Quiz: React.FC = () => {
                       language={language}
                     />
                   </div>
-                </div>
-              </AnimatedTransition>
-            </>
-          )}
-        </main>
-      </div>
-
-      <div style={{ position: "absolute", bottom: 0, left: 0 }}>
-        <ProctoringSystem onStatusChange={setIsProctoringEnabled} />
-      </div>
-    </>
+                )} */}
+              </div>
+            </AnimatedTransition>
+          </>
+        )}
+      </main>
+    </div>
+    {proctorGate && (    <div style={{position: "absolute", bottom: 0, right: 0}}><ProctoringSystem setIsProctoringEnabled={setIsProctoringEnabled} isGameStarted={gameStarted} /></div>)}
+    
+</>
   );
 };
 
