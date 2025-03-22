@@ -93,7 +93,7 @@ export const ClusterSignals = () => {
       <div
         className="absolute inset-0 z-0 opacity-20"
         style={{
-          backgroundImage: "url('src/assets/images/cluster_image.png')",
+          backgroundImage: "url('https://i.ibb.co/8LP2gxM5/cluster-image.gif')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundBlendMode: "overlay",
