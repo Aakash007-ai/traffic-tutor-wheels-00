@@ -25,8 +25,7 @@ const App = () => (
       <Sonner position="bottom-right" />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<ClusterSignals />} />
-          {/* <Route path="/" element={<Index />} /> */}
+          <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/simulation" element={<Simulation />} />
