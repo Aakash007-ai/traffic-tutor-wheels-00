@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/Header";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -10,6 +10,7 @@ import RoadGameComponent from "@/components/RoadGameComponent";
 import { ProctoringSystem } from "@/components/Proctoring";
 import quizAppi from "@/services";
 import carImage from "../assets/images/landing_car.png";
+import Sound from "@/components/sound";
 
 // Define the GameQuestion interface to match RoadGameComponent
 interface GameQuestion {
@@ -74,6 +75,8 @@ const Quiz: React.FC = () => {
   const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
   const [language, setLanguage] = useState("ENGLISH");
   const [proctorGate, setProctorGate] = useState(true);
+
+  const soundRef = useRef(null);
 
   // Fetch user data when component mounts
   useEffect(() => {
@@ -151,6 +154,7 @@ const Quiz: React.FC = () => {
   };
 
   const handleStartGame = () => {
+    soundRef?.current?.play();
     setGameStarted(true);
     setGameOver(false);
     setScore(0);
@@ -177,6 +181,7 @@ const Quiz: React.FC = () => {
   }, [score, selectedModule, highestModule1Score]);
 
   const handleGameOver = async () => {
+    soundRef?.current?.pause();
     setGameOver(true);
     setShowModuleSelection(true); // Show module selection again
     toast.error("Game Over! Drive safely next time!");
@@ -258,6 +263,7 @@ const Quiz: React.FC = () => {
 
   return (
     <>
+      <Sound ref={soundRef} />
       <div className="min-h-screen w-full bg-[#0f172a] text-white font-nunito pt-20 pb-16 relative overflow-hidden">
         {/* Background pattern */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a] to-[#1e293b] z-0"></div>
@@ -299,22 +305,20 @@ const Quiz: React.FC = () => {
                   >
                     {/* Language Text Inside Toggle */}
                     <span
-                      className={`absolute uppercase text-xs font-semibold transition-all duration-300 ease-in-out ${
-                        language === "ENGLISH"
+                      className={`absolute uppercase text-xs font-semibold transition-all duration-300 ease-in-out ${language === "ENGLISH"
                           ? "left-7 text-[#0f172a]"
                           : "right-8 text-[#22c55e]"
-                      }`}
+                        }`}
                     >
                       {language}
                     </span>
 
                     {/* Sliding Toggle Circle */}
                     <div
-                      className={`absolute w-5 h-5 rounded-full bg-[#22c55e] transition-all duration-300 ease-in-out shadow-lg ${
-                        language === "ENGLISH"
+                      className={`absolute w-5 h-5 rounded-full bg-[#22c55e] transition-all duration-300 ease-in-out shadow-lg ${language === "ENGLISH"
                           ? "left-1"
                           : "left-[calc(100%-1.75rem)] bg-[#0f172a]"
-                      }`}
+                        }`}
                     ></div>
                   </div>
                 </div>
@@ -357,11 +361,10 @@ const Quiz: React.FC = () => {
                           handleModuleSelect("GeneralTrafficRules")
                         }
                         disabled={!module2Unlocked}
-                        className={`bg-[#22c55e] hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20 ${
-                          !module2Unlocked
+                        className={`bg-[#22c55e] hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20 ${!module2Unlocked
                             ? "opacity-50 cursor-not-allowed hover:scale-100"
                             : ""
-                        }`}
+                          }`}
                       >
                         Advanced
                         {!module2Unlocked && ` (score 80% to unlock)`}
@@ -426,15 +429,15 @@ const Quiz: React.FC = () => {
                     />
                   </div>
                 )} */}
-              </div>
-            </AnimatedTransition>
-          </>
-        )}
-      </main>
-    </div>
-    {proctorGate && (    <div style={{position: "absolute", bottom: 0, right: 0}}><ProctoringSystem setIsProctoringEnabled={setIsProctoringEnabled} isGameStarted={gameStarted} /></div>)}
-    
-</>
+                </div>
+              </AnimatedTransition>
+            </>
+          )}
+        </main>
+      </div>
+      {proctorGate && (<div style={{ position: "absolute", bottom: 0, right: 0 }}><ProctoringSystem setIsProctoringEnabled={setIsProctoringEnabled} isGameStarted={gameStarted} /></div>)}
+
+    </>
   );
 };
 
