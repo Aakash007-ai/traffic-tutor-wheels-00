@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { GameQuestion } from '../QuizController/QuizController';
-import { OptionItem } from '../ui/quizModal/OptionItem';
-import { toast } from 'sonner';
-
+import { useEffect, useRef, useState } from "react";
+import { GameQuestion } from "../QuizController/QuizController";
+import { OptionItem } from "../ui/quizModal/OptionItem";
+import OneTimeSound from "@/assets/soundEffects/oneTimeSound";
+import { toast } from "sonner";
 interface IOptionsPopUpProps {
   currentQuestion: GameQuestion;
   handleAnswer: (seqNumber) => void;
@@ -10,7 +10,7 @@ interface IOptionsPopUpProps {
 
 const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
   currentQuestion,
-  handleAnswer
+  handleAnswer,
 }) => {
   const [questionTimer, setQuestionTimer] = useState<number>(20);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -19,6 +19,8 @@ const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
 
   // Get the correct answer sequence
   const correctAnswerSequence = Number(currentQuestion.metadata.ans);
+  const correctAnsRef = useRef(null);
+  const wrongAnsRef = useRef(null);
 
   useEffect(() => {
     let timerInterval: NodeJS.Timeout | null = null;
@@ -38,7 +40,7 @@ const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
             clearInterval(timerInterval);
 
             const wrongAnswer = currentQuestion.options.filter(
-              (option) => option.sequence !== currentQuestion.metadata.ans
+              (option) => option.sequence != currentQuestion.metadata.ans
             )[0];
 
             // Find the correct option
@@ -50,12 +52,12 @@ const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
             toast.error(
               <div>
                 <p>Time's up!</p>
-                <p className='font-medium mt-1'>
+                <p className="font-medium mt-1">
                   The correct answer was: {correctOption?.toolTip}
                 </p>
               </div>,
               {
-                duration: 3000 // Show for 3 seconds
+                duration: 3000, // Show for 3 seconds
               }
             );
 
@@ -91,11 +93,12 @@ const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
 
     if (isCorrect) {
       // If correct, show success toast and wait 2 seconds
-      toast.success('Correct answer!');
-      
+      toast.success("Correct answer!");
+      correctAnsRef.current?.playSoundOnce();
+
       // Show the correct answer is selected
       setShowingCorrectAnswer(true);
-      
+
       // Wait 2 seconds before closing
       setTimeout(() => {
         handleAnswer(sequence);
@@ -105,17 +108,18 @@ const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
       const correctOption = currentQuestion.options.find(
         (option) => option.sequence === correctAnswerSequence
       );
+      wrongAnsRef.current?.playSoundOnce();
 
       // Show toast with correct answer
       toast.error(
         <div>
           <p>Wrong answer!</p>
-          <p className='font-medium mt-1'>
+          <p className="font-medium mt-1">
             The correct answer was: {correctOption?.toolTip}
           </p>
         </div>,
         {
-          duration: 3000 // Show for 3 seconds
+          duration: 3000, // Show for 3 seconds
         }
       );
 
@@ -130,28 +134,32 @@ const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
   };
 
   return (
-    <div className='absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-green-50/90 p-4 rounded-lg shadow-lg text-center max-w-md w-full z-20'>
-      <div className='flex justify-between items-center '>
-        <p className='text-xl font-medium text-green-900 mb-3'>
+    <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-green-50/90 p-4 rounded-lg shadow-lg text-center max-w-md w-full z-20">
+      <div className="flex justify-between items-center ">
+        <p className="text-xl font-medium text-green-900 mb-3">
           {currentQuestion?.name}
         </p>
-        <div className='bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900'>
-          {questionTimer > 0 ? `${questionTimer}s` : ''}
+        <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900">
+          {questionTimer > 0 ? `${questionTimer}s` : ""}
         </div>
       </div>
-      <div className='flex flex-col gap-2'>
+      <div className="flex flex-col gap-2">
         {currentQuestion.options.map((option) => (
           <OptionItem
             key={option.id}
             option={option}
             isSelected={selectedOption === option.sequence}
-            isCorrect={showingCorrectAnswer && option.sequence === correctAnswerSequence}
+            isCorrect={
+              showingCorrectAnswer && option.sequence === correctAnswerSequence
+            }
             onSelect={() =>
               !selectedOption && handleOptionSelect(option.sequence)
             }
           />
         ))}
       </div>
+      <OneTimeSound type="correct" ref={correctAnsRef} />
+      <OneTimeSound type="error" ref={wrongAnsRef} />
     </div>
   );
 };
