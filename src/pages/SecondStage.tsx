@@ -18,8 +18,8 @@ const SecondStage = () => {
           <>
             {/* Game stats */}
             <AnimatedTransition animation="fade">
-              <div className="mb-6 grid grid-cols-3 gap-4">
-                <Card glass className="py-3">
+              <div className="mb-6 grid grid-cols-3 gap-4 max-w-md mx-auto">
+                <Card glass className="py-3 flex justify-center">
                   <div className="flex flex-col items-center">
                     <Zap className="h-5 w-5 text-amber-500 mb-1" />
                     <p className="text-xs text-muted-foreground">SCORE</p>
@@ -27,7 +27,7 @@ const SecondStage = () => {
                   </div>
                 </Card>
 
-                <Card glass className="py-3">
+                <Card glass className="py-3 flex justify-center">
                   <div className="flex flex-col items-center">
                     <Heart className="h-5 w-5 text-red-500 mb-1" />
                     <p className="text-xs text-muted-foreground">LIVES</p>
@@ -47,32 +47,39 @@ const SecondStage = () => {
                     </div>
                   </div>
                 </Card>
+
+                <Card glass className="py-3 flex justify-center">
+                  <div className="flex flex-col items-center">
+                    <Trophy className="h-5 w-5 text-yellow-500 mb-1" />
+                    <p className="text-xs text-muted-foreground">BEST</p>
+                    <p className="font-bold">48</p>
+                  </div>
+                </Card>
               </div>
             </AnimatedTransition>
 
             {/* Game area */}
             <AnimatedTransition animation="scale">
               <div className="relative">
-              <RoadComponent ref={carRef}/>
-              <div className="mt-4 flex gap-4">
-        <button
-          onMouseDown={() => carRef.current?.turnLeft(false)} 
-          onMouseUp={() => carRef.current?.turnLeft(true)}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-          disabled={false}
-        >
-          Left
-        </button>
-        <button
-          onMouseDown={() => carRef.current?.turnRight(false)} 
-          onMouseUp={() => carRef.current?.turnRight(true)}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-          disabled={false}
-        >
-          Right
-        </button>
-      </div>
-            
+                <RoadComponent ref={carRef}/>
+                <div className="mt-4 flex gap-4 max-w-md mx-auto items-center justify-center ">
+                    <button
+                    onMouseDown={() => carRef.current?.turnLeft(false)} 
+                    onMouseUp={() => carRef.current?.turnLeft(true)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                    disabled={false}
+                    >
+                    Left
+                    </button>
+                    <button
+                    onMouseDown={() => carRef.current?.turnRight(false)} 
+                    onMouseUp={() => carRef.current?.turnRight(true)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                    disabled={false}
+                    >
+                    Right
+                    </button>
+                </div>
               </div>
             </AnimatedTransition>
           </>

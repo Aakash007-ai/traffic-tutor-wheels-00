@@ -9,8 +9,8 @@ export interface IRoadComponentProp {
 
 // Define the exposed methods for ref
 export interface RoadComponentRef {
-    turnLeft: (keyUp:boolean) => void;
-    turnRight: (keyUp:boolean) => void;
+    turnLeft: (keyUp: boolean) => void;
+    turnRight: (keyUp: boolean) => void;
 }
 const rightPos = 100;
 
@@ -67,7 +67,9 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
                 left: false,
                 right: false,
                 down: false
-            }
+            },
+            poleImage: new Image(),
+            isImageLoaded: false
         },
         storage: {
             bg: null
@@ -91,18 +93,24 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
         drawBg();
         draw();
         keyDown({ keyCode: 999, preventDefault: () => { } });
+
+        // Update the pole image URL
+        mainState.state.poleImage.src = 'https://e7.pngegg.com/pngimages/412/926/png-clipart-pedestrian-crossing-signage-warning-road-signs-in-france-traffic-sign-school-traffic-code-front-school-text-triangle.png';
+        mainState.state.poleImage.onload = () => {
+            mainState.state.isImageLoaded = true;
+        };
     }, []);
 
     useImperativeHandle(ref, () => ({
-        turnLeft: (releaseKey)=>{
-            if(releaseKey) {
+        turnLeft: (releaseKey) => {
+            if (releaseKey) {
                 keyUp({ keyCode: 37, preventDefault: () => { } });
             } else {
                 keyDown({ keyCode: 37, preventDefault: () => { } });
             }
         },
-        turnRight: (releaseKey)=>{
-            if(releaseKey) {
+        turnRight: (releaseKey) => {
+            if (releaseKey) {
                 keyUp({ keyCode: 39, preventDefault: () => { } });
             } else {
                 keyDown({ keyCode: 39, preventDefault: () => { } });
@@ -144,48 +152,68 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
     function drawPole(ctx, pos) {
         const min = 3, max = 3;
         const basePos = mainState.canvas.width + mainState.state.xpos;
-        
-        // Calculate perspective factor based on Y position (0 at top, 1 near car)
+
         const perspectiveFactor = (mainState.state.poleY - 70) / (320 - 70);
-        
-        // Adjust X position based on perspective
         const startX = ((basePos + min) / 2) - (mainState.state.currentCurve * 3) - 80;
         const centerX = mainState.canvas.width / 2;
-        const xPos = startX +30 + (right ? rightPos : 0);
-        
+        const xPos = startX + 30 + (right ? rightPos : 0);
+
         if (mainState.state.speed > 0) {
             mainState.state.poleY += mainState.state.speed * 0.5;
         }
-        
+
         if (mainState.state.poleY > 320) {
             mainState.state.poleY = 70;
         }
-        
+
         if (mainState.state.poleY < 320) {
-            // Start with smaller scale at the top (0.3) and grow to 1.0 near the car
-            const scale = 0.3 + (perspectiveFactor * 0.7);
-            const Y = scale+60;
-            // Base sizes
+            const scale = 0.3 + (perspectiveFactor * 0.8);
+            const Y = scale + 60;
+
             const baseCircleSize = 20;
             const basePoleWidth = 5;
             const basePoleHeight = 50;
-            
-            // Apply scaling
+
             const circleSize = baseCircleSize * scale;
             const poleWidth = basePoleWidth * scale;
             const poleHeight = basePoleHeight * scale;
-            
-            // Draw traffic light
-            ctx.beginPath();
-           
-            
+
             // Draw pole
             ctx.beginPath();
             ctx.fillStyle = "black";
-            ctx.fillRect(xPos, 120-poleHeight, poleWidth, poleHeight);
-            ctx.arc(xPos + 1, 120-poleHeight, circleSize, 0, 2 * Math.PI);
+            ctx.fillRect(xPos, 120 - poleHeight, poleWidth, poleHeight);
+
+            // Draw circle background
+            ctx.beginPath();
+            ctx.arc(xPos + 1, 120 - poleHeight, circleSize, 0, 2 * Math.PI);
             ctx.fillStyle = "red";
             ctx.fill();
+
+            // Draw image inside circle if loaded
+            if (mainState.state.isImageLoaded) {
+                ctx.save(); // Save the current context state
+
+                // Create circular clipping path
+                ctx.beginPath();
+                ctx.arc(xPos + 1, 120 - poleHeight, circleSize * 0.9, 0, 2 * Math.PI);
+                ctx.clip();
+
+                // Calculate image dimensions to maintain aspect ratio
+                const imageSize = circleSize * 1.8;
+                const imageX = xPos + 1 - imageSize / 2;
+                const imageY = 120 - poleHeight - imageSize / 2;
+
+                // Draw the image
+                ctx.drawImage(
+                    mainState.state.poleImage,
+                    imageX,
+                    imageY,
+                    imageSize,
+                    imageSize
+                );
+
+                ctx.restore(); // Restore the context state
+            }
         }
     }
 
@@ -548,7 +576,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
     return (
         <div className={'bodyDiv'}>
             <canvas id="myCanvas" height="450" width="750"></canvas>
-            
+
         </div>
     );
 });
