@@ -1,5 +1,7 @@
 import React, { forwardRef, useState, useImperativeHandle, useRef, useEffect } from 'react';
 import './RoadComponent.css';
+import QuizController, { QuizControllerRef } from '../QuizController/QuizController';
+import { getImage } from '../QuizController/QuizControllerImage';
 
 
 export interface IRoadComponentProp {
@@ -13,9 +15,13 @@ export interface RoadComponentRef {
     turnRight: (keyUp: boolean) => void;
 }
 const rightPos = 100;
+const NEXT_QUIZ_TIME = 3000;
 
 // Ref-enabled RoadComponent
 const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up', right = false }, ref) => {
+    const showPole = useRef(false);
+    const quizControllerRef = useRef<QuizControllerRef>(null);
+
     const mainState = {
         canvas: null,
         ctx: null,
@@ -75,6 +81,24 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
             bg: null
         }
     };
+
+    const reset = () => {
+        showPole.current = false;
+        mainState.state.poleY = 70;
+        // drawBg();
+        draw();
+        keyDown({ keyCode: 999, preventDefault: () => { } });
+        setTimeout(() => {
+            showPole.current = true;
+        }, NEXT_QUIZ_TIME);
+    };
+
+    useEffect(() => {
+        setTimeout(() => {
+            showPole.current = true;
+        }, NEXT_QUIZ_TIME);
+    }, []);
+
     useEffect(() => {
         mainState.canvas = document.getElementsByTagName('canvas')[0];
         mainState.ctx = mainState.canvas.getContext('2d');
@@ -94,11 +118,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
         draw();
         keyDown({ keyCode: 999, preventDefault: () => { } });
 
-        // Update the pole image URL
-        mainState.state.poleImage.src = 'https://e7.pngegg.com/pngimages/412/926/png-clipart-pedestrian-crossing-signage-warning-road-signs-in-france-traffic-sign-school-traffic-code-front-school-text-triangle.png';
-        mainState.state.poleImage.onload = () => {
-            mainState.state.isImageLoaded = true;
-        };
+
     }, []);
 
     useImperativeHandle(ref, () => ({
@@ -120,6 +140,12 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
 
     function draw() {
         setTimeout(function () {
+            const perspectiveFactor = (mainState.state.poleY - 70) / (320 - 70);
+            if (showPole.current && perspectiveFactor > 0.95) {
+                quizControllerRef.current.loadNext();
+                console.log("true")
+                return;
+            }
             calcMovement();
 
             //if(mainState.state.speed > 0) {
@@ -142,7 +168,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
             drawRoad(mainState.settings.road.min, mainState.settings.road.max, 10, mainState.colors.road);
             drawRoad(3, 24, 0, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
             drawCar();
-            drawPole(mainState.ctx, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
+            if (showPole.current) drawPole(mainState.ctx, mainState.ctx.createPattern(mainState.canvas2, 'repeat'));
             //drawHUD(mainState.ctx, 630, 340, mainState.colors.hud);
 
             requestAnimationFrame(draw);
@@ -185,7 +211,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
             // Draw circle background
             ctx.beginPath();
             ctx.arc(xPos + 1, 120 - poleHeight, circleSize, 0, 2 * Math.PI);
-            ctx.fillStyle = "red";
+            ctx.fillStyle = "orange";
             ctx.fill();
 
             // Draw image inside circle if loaded
@@ -575,7 +601,22 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
     return (
         <div className={'bodyDiv'}>
             <canvas id="myCanvas" height="450" width="750"></canvas>
-
+            <QuizController
+                ref={quizControllerRef}
+                onSubmit={(isCorrect) => {
+                    if (isCorrect) {
+                        //
+                    }
+                    reset();
+                }}
+                onQuestionLoad={(quiz) => {
+                    // Update the pole image URL
+                    mainState.state.poleImage.src = getImage(quiz.metadata.imageFile);
+                    mainState.state.poleImage.onload = () => {
+                        mainState.state.isImageLoaded = true;
+                    };
+                }}
+            />
         </div>
     );
 });
