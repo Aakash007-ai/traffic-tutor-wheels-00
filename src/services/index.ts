@@ -1,5 +1,6 @@
 const API_URL =
   "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers/Module1";
+const CLUSTER_API_URL = "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers/SelfVehicleAwareness";
 
 const quizService = () => {
   const getQuestions = async () => {
@@ -23,8 +24,31 @@ const quizService = () => {
     }
   };
 
+
+  const getClusterQuestions = async () => {
+    try {
+      const response = await fetch(CLUSTER_API_URL, {
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching rating config:", error);
+      throw error;
+    }
+  }
+
   return {
     getQuestions,
+    getClusterQuestions
   };
 };
 
