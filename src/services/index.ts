@@ -1,7 +1,7 @@
 const BASE_API_URL =
   "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers";
 const SCORE_FEEDBACK_API_URL =
-  "http://192.168.27.85:8091/api/v1/submit/score-feedback";
+  "https://safeway-hackers-466060604919.us-central1.run.app/api/v1/submit/score-feedback";
 
 const CLUSTER_API_URL =
   "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers/SelfVehicleAwareness";
