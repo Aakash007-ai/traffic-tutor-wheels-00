@@ -3,12 +3,14 @@ import AnimatedTransition from "@/components/AnimatedTransition";
 import { Header } from "@/components/Header";
 import { Card } from "@/components/Card";
 import { Heart, Zap, Trophy, Car } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
-const score = 32;
-const lives = 2;
 const SecondStage = () => {
     const carRef = useRef<RoadComponentRef>(null);
+    const [gameStats, setGameStats] = useState({
+        score: 0,
+        lives: 3,
+    });
     
     return (
         <div className="min-h-screen w-full pt-20 pb-16 bg-[#0f172a]">
@@ -23,7 +25,7 @@ const SecondStage = () => {
                   <div className="flex flex-col items-center">
                     <Zap className="h-5 w-5 text-amber-500 mb-1" />
                     <p className="text-xs text-muted-foreground">SCORE</p>
-                    <p className="font-bold">{score}</p>
+                    <p className="font-bold">{gameStats.score}</p>
                   </div>
                 </Card>
 
@@ -32,15 +34,15 @@ const SecondStage = () => {
                     <Heart className="h-5 w-5 text-red-500 mb-1" />
                     <p className="text-xs text-muted-foreground">LIVES</p>
                     <div className="flex">
-                      {Array.from({ length: lives }).map((_, i) => (
+                      {Array.from({ length: gameStats.lives }).map((_, i) => (
                         <Heart
                           key={i}
                           className="h-4 w-4 text-red-500 fill-red-500 mr-1"
                         />
                       ))}
-                      {Array.from({ length: 3 - lives }).map((_, i) => (
+                      {Array.from({ length: 3 - gameStats.lives }).map((_, i) => (
                         <Heart
-                          key={i + lives}
+                          key={i + gameStats.lives}
                           className="h-4 w-4 text-red-200 mr-1"
                         />
                       ))}
@@ -61,7 +63,7 @@ const SecondStage = () => {
             {/* Game area */}
             <AnimatedTransition animation="scale">
               <div className="relative">
-                <RoadComponent ref={carRef}/>
+                <RoadComponent ref={carRef} onDataChange={setGameStats}/>
                 <div className="mt-4 flex gap-4 max-w-md mx-auto items-center justify-center ">
                     <button
                     onMouseDown={() => carRef.current?.turnLeft(false)} 

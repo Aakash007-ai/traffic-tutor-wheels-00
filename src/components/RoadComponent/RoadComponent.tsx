@@ -7,6 +7,7 @@ import { getImage } from '../QuizController/QuizControllerImage';
 export interface IRoadComponentProp {
     direction?: 'left' | 'right' | 'up' | 'down';
     right?: boolean;
+    onDataChange: ({ score, lives }) => void;
 }
 
 // Define the exposed methods for ref
@@ -18,7 +19,7 @@ const rightPos = 100;
 const NEXT_QUIZ_TIME = 3000;
 
 // Ref-enabled RoadComponent
-const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up', right = false }, ref) => {
+const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direction = 'up', right = false, onDataChange }, ref) => {
     const showPole = useRef(false);
     const quizControllerRef = useRef<QuizControllerRef>(null);
 
@@ -605,7 +606,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
                 ref={quizControllerRef}
                 onSubmit={(isCorrect) => {
                     if (isCorrect) {
-                        //
+                        //onDataChange(prev => ({prev.}));
                     }
                     reset();
                 }}
