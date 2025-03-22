@@ -11,8 +11,8 @@ const SecondStage = () => {
     const carRef = useRef<RoadComponentRef>(null);
     
     return (
-        <div className="min-h-screen w-full bg-background pt-20 pb-16">
-      <Header />
+        <div className="min-h-screen w-full pt-20 pb-16 bg-[#0f172a]">
+        <Header />
 
       <main className="container max-w-7xl mx-auto px-4">
           <>

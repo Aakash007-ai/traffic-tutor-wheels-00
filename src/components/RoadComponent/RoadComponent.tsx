@@ -167,8 +167,7 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
         }
 
         if (mainState.state.poleY < 320) {
-            const scale = 0.3 + (perspectiveFactor * 0.8);
-            const Y = scale + 60;
+            const scale = 0.5 + (perspectiveFactor * 0.8);
 
             const baseCircleSize = 20;
             const basePoleWidth = 5;
