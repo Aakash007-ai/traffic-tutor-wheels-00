@@ -46,12 +46,59 @@ export const ProctoringSystem = ({ onStatusChange }) => {
     };
 
     useEffect(() => {
-        runPosenet();
-        monitorIdleTime();
-        detectTabSwitching();
-        detectFullscreenExit();
-        startAudioMonitoring();
-    }, []);
+      const requestPermissions = async () => {
+          try {
+              const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+              webcamRef.current.srcObject = stream;
+          } catch (error) {
+              console.error("Permissions denied for webcam or microphone:", error);
+          }
+      };
+  
+      requestPermissions();
+  
+      runPosenet();
+      monitorIdleTime();
+      detectTabSwitching();
+      detectFullscreenExit();
+      startAudioMonitoring();
+  
+      return () => {
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+          document.removeEventListener("fullscreenchange", handleFullscreenChange);
+          
+          // Stop camera and microphone permissions
+          if (webcamRef.current?.srcObject) {
+              webcamRef.current.srcObject.getTracks().forEach(track => track.stop());
+          }
+  
+          navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+              .then(stream => {
+                  stream.getTracks().forEach(track => track.stop());
+              })
+              .catch(error => console.error("Error stopping media stream:", error));
+      };
+  }, []);
+
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            showAlert("Tab Change Detected!", "Please stay on the exam screen!", "error", "tabSwitch");
+        }
+    };
+
+    const handleFullscreenChange = () => {
+        if (!document.fullscreenElement) {
+            showAlert("Fullscreen Exited!", "Your answers might be reset!", "error", "fullscreenExit");
+        }
+    };
+
+    const detectTabSwitching = () => {
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+    };
+
+    const detectFullscreenExit = () => {
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+    };
 
     const runPosenet = async () => {
         try {
@@ -133,22 +180,6 @@ export const ProctoringSystem = ({ onStatusChange }) => {
                 idleRef.current = 0;
             }
         }, 1000);
-    };
-
-    const detectTabSwitching = () => {
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) {
-                showAlert("Tab Change Detected!", "Please stay on the exam screen!", "error", "tabSwitch");
-            }
-        });
-    };
-
-    const detectFullscreenExit = () => {
-        document.addEventListener("fullscreenchange", () => {
-            if (!document.fullscreenElement) {
-                showAlert("Fullscreen Exited!", "Your answers might be reset!", "error", "fullscreenExit");
-            }
-        });
     };
 
     const startAudioMonitoring = () => {
