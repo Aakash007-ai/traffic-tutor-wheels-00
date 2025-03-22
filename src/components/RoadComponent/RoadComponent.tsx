@@ -9,7 +9,8 @@ export interface IRoadComponentProp {
 
 // Define the exposed methods for ref
 export interface RoadComponentRef {
-    toggleHeadlight: () => void;
+    turnLeft: (keyUp:boolean) => void;
+    turnRight: (keyUp:boolean) => void;
 }
 const rightPos = 100;
 
@@ -93,8 +94,20 @@ const RoadComponent = forwardRef<RoadComponentRef, IRoadComponentProp>(({ direct
     }, []);
 
     useImperativeHandle(ref, () => ({
-        toggleHeadlight: () => { },
-
+        turnLeft: (releaseKey)=>{
+            if(releaseKey) {
+                keyUp({ keyCode: 37, preventDefault: () => { } });
+            } else {
+                keyDown({ keyCode: 37, preventDefault: () => { } });
+            }
+        },
+        turnRight: (releaseKey)=>{
+            if(releaseKey) {
+                keyUp({ keyCode: 39, preventDefault: () => { } });
+            } else {
+                keyDown({ keyCode: 39, preventDefault: () => { } });
+            }
+        },
     }));
 
     function draw() {

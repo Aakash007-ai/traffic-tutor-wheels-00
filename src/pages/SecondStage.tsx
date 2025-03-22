@@ -1,13 +1,14 @@
-import RoadComponent from "@/components/RoadComponent/RoadComponent";
+import RoadComponent, { RoadComponentRef } from "@/components/RoadComponent/RoadComponent";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import { Header } from "@/components/Header";
 import { Card } from "@/components/Card";
-import { Button } from "@/components/Button";
 import { Heart, Zap, Trophy, Car } from "lucide-react";
+import { useRef } from "react";
 
 const score = 32;
 const lives = 2;
 const SecondStage = () => {
+    const carRef = useRef<RoadComponentRef>(null);
     
     return (
         <div className="min-h-screen w-full bg-background pt-20 pb-16">
@@ -52,38 +53,23 @@ const SecondStage = () => {
             {/* Game area */}
             <AnimatedTransition animation="scale">
               <div className="relative">
-              <RoadComponent/>
+              <RoadComponent ref={carRef}/>
               <div className="mt-4 flex gap-4">
         <button
-          onClick={() => {}}
+          onMouseDown={() => carRef.current?.turnLeft(false)} 
+          onMouseUp={() => carRef.current?.turnLeft(true)}
           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
           disabled={false}
         >
           Left
         </button>
         <button
-          onClick={() => {}}
+          onMouseDown={() => carRef.current?.turnRight(false)} 
+          onMouseUp={() => carRef.current?.turnRight(true)}
           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
           disabled={false}
         >
           Right
-        </button>
-
-        <button
-          onClick={() => {}}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-          disabled={false}
-        >
-          Headlight
-        </button>
-        <button
-          onMouseDown={() => {}} // Start horn
-          onMouseUp={() => {}} // Stop horn
-          onMouseLeave={() => {}} // Stop if moved out
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-          disabled={false}
-        >
-          Horn
         </button>
       </div>
             
