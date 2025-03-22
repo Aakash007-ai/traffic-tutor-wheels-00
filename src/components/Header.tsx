@@ -27,7 +27,6 @@ export const Header: React.FC = () => {
     { name: 'Home', path: '/', icon: Car },
     { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
     { name: 'Quiz', path: '/quiz', icon: BookOpen },
-    { name: 'Lessons', path: '/simulation', icon: Gamepad },
     userLoggedIn
       ? { name: 'Logout', path: '#', icon: LogOut, onClick: handleLogout }
       : { name: 'Login', path: '/login', icon: User }

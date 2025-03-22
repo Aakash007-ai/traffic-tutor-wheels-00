@@ -110,7 +110,17 @@ const Quiz: React.FC = () => {
         const data = await response.json();
         if (data && data.id) {
           setUserId(data.id);
-          console.log("User ID set:", data.id);
+          console.log("User data fetched:", data);
+          
+          // Set highest score from user data
+          if (data.maxScore) {
+            setHighestModule1Score(data.maxScore);
+          }
+          
+          // Check if Module 2 should be unlocked based on completed levels
+          if (data.completedLevels && data.completedLevels.includes(1)) {
+            setModule2Unlocked(true);
+          }
         }
       } catch (err) {
         console.error("Error fetching user data:", err);
