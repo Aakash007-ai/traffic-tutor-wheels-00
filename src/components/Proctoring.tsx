@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Webcam from "react-webcam";
 import swal from "sweetalert";
 import * as posenet from "@tensorflow-models/posenet";
 
-export const ProctoringSystem = ({ onStatusChange }) => {
+export const ProctoringSystem = ({ onStatusChange, isGameStarted }) => {
     const webcamRef = useRef(null);
     const canvasRef = useRef(null);
     const absenceRef = useRef(0);
     const gazeDirectionRef = useRef({ direction: null, time: 0 });
     const idleRef = useRef(0);
     const isAlertVisibleRef = useRef(false);
+    const poseDetectionInterval = useRef(null);
 
     const [alertCounts, setAlertCounts] = useState({
         gazeLeft: 0,
@@ -23,18 +24,20 @@ export const ProctoringSystem = ({ onStatusChange }) => {
         absence: 0
     });
 
-    const isProctoringEnabled = Object.values(alertCounts).every(count => count === 0);
+    useEffect(() => {
+        console.log("Proctoring -------------", isGameStarted);
+    }, [isGameStarted]);
 
     useEffect(() => {
         if (onStatusChange) {
-            onStatusChange(isProctoringEnabled);
+            onStatusChange(Object.values(alertCounts).every(count => count === 0));
         }
     }, [alertCounts, onStatusChange]);
 
-    const showAlert = (title, text, icon, alertType) => {
-        if (isAlertVisibleRef.current) return;
-        isAlertVisibleRef.current = true;
+    const showAlert = useCallback((title, text, icon, alertType) => {
+        if (!isGameStarted || isAlertVisibleRef.current) return; // Prevent alerts if game is not started
 
+        isAlertVisibleRef.current = true;
         setAlertCounts(prevCounts => ({
             ...prevCounts,
             [alertType]: prevCounts[alertType] + 1
@@ -43,85 +46,38 @@ export const ProctoringSystem = ({ onStatusChange }) => {
         swal(title, text, icon).then(() => {
             isAlertVisibleRef.current = false;
         });
-    };
+    }, [isGameStarted]);
 
-    useEffect(() => {
-      const requestPermissions = async () => {
-          try {
-              const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-              webcamRef.current.srcObject = stream;
-          } catch (error) {
-              console.error("Permissions denied for webcam or microphone:", error);
-          }
-      };
-  
-      requestPermissions();
-  
-      runPosenet();
-      monitorIdleTime();
-      detectTabSwitching();
-      detectFullscreenExit();
-      startAudioMonitoring();
-  
-      return () => {
-          document.removeEventListener("visibilitychange", handleVisibilityChange);
-          document.removeEventListener("fullscreenchange", handleFullscreenChange);
-          
-          // Stop camera and microphone permissions
-          if (webcamRef.current?.srcObject) {
-              webcamRef.current.srcObject.getTracks().forEach(track => track.stop());
-          }
-  
-          navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-              .then(stream => {
-                  stream.getTracks().forEach(track => track.stop());
-              })
-              .catch(error => console.error("Error stopping media stream:", error));
-      };
-  }, []);
-
-    const handleVisibilityChange = () => {
+    const handleVisibilityChange = useCallback(() => {
+        if (!isGameStarted) return;
         if (document.hidden) {
             showAlert("Tab Change Detected!", "Please stay on the exam screen!", "error", "tabSwitch");
         }
-    };
+    }, [showAlert, isGameStarted]);
 
-    const handleFullscreenChange = () => {
+    const handleFullscreenChange = useCallback(() => {
+        if (!isGameStarted) return;
         if (!document.fullscreenElement) {
             showAlert("Fullscreen Exited!", "Your answers might be reset!", "error", "fullscreenExit");
         }
-    };
+    }, [showAlert, isGameStarted]);
 
-    const detectTabSwitching = () => {
+    useEffect(() => {
         document.addEventListener("visibilitychange", handleVisibilityChange);
-    };
-
-    const detectFullscreenExit = () => {
         document.addEventListener("fullscreenchange", handleFullscreenChange);
-    };
 
-    const runPosenet = async () => {
-        try {
-            const net = await posenet.load({
-                architecture: "MobileNetV1",
-                inputResolution: { width: 640, height: 480 },
-                outputStride: 16
-            });
-
-            setInterval(() => detectPose(net), 1000);
-        } catch (error) {
-            console.error("Error loading PoseNet:", error);
-        }
-    };
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+        };
+    }, [handleVisibilityChange, handleFullscreenChange]);
 
     const detectPose = async (net) => {
-        if (!webcamRef.current?.video || isAlertVisibleRef.current) return;
+        if (!webcamRef.current?.video || !isGameStarted || isAlertVisibleRef.current) return;
 
         const video = webcamRef.current.video;
-        const pose = await net.estimateSinglePose(video, {
-            flipHorizontal: false
-        });
-
+        const pose = await net.estimateSinglePose(video, { flipHorizontal: false });
+        
         const isPersonInFrame = pose.keypoints.some(keypoint => keypoint.score > 0.2);
         if (!isPersonInFrame) {
             absenceRef.current += 1;
@@ -137,6 +93,8 @@ export const ProctoringSystem = ({ onStatusChange }) => {
     };
 
     const checkGazeDirection = (keypoints, minConfidence) => {
+        if (!isGameStarted) return;
+        
         const leftEar = keypoints[3];
         const rightEar = keypoints[4];
 
@@ -150,7 +108,7 @@ export const ProctoringSystem = ({ onStatusChange }) => {
         if (newGazeDirection) {
             if (gazeDirectionRef.current.direction === newGazeDirection) {
                 gazeDirectionRef.current.time += 1;
-                if (gazeDirectionRef.current.time >= 10) {
+                if (gazeDirectionRef.current.time >= 5) {
                     showAlert("Possible cheating!", "You've been looking away for too long.", "error", "cheating");
                     gazeDirectionRef.current.time = 0;
                 }
@@ -173,7 +131,7 @@ export const ProctoringSystem = ({ onStatusChange }) => {
         document.onkeypress = resetIdle;
 
         setInterval(() => {
-            if (isAlertVisibleRef.current) return;
+            if (!isGameStarted || isAlertVisibleRef.current) return;
             idleRef.current += 1;
             if (idleRef.current > 60) {
                 showAlert("Are you still there?", "You've been idle for too long!", "warning", "idle");
@@ -182,49 +140,10 @@ export const ProctoringSystem = ({ onStatusChange }) => {
         }, 1000);
     };
 
-    const startAudioMonitoring = () => {
-        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const analyser = audioContext.createAnalyser();
-            const source = audioContext.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 512;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            let ambientNoiseLevel = null;
-            let lastNoiseAlertTime = 0;
-            const noiseAlertThrottleTime = 100000; // 10 seconds
-
-            setInterval(() => {
-                analyser.getByteFrequencyData(dataArray);
-                const averageVolume = dataArray.reduce((a, b) => a + b) / bufferLength;
-
-                if (ambientNoiseLevel === null) {
-                    ambientNoiseLevel = averageVolume;
-                }
-
-                const currentTime = Date.now();
-                if (averageVolume > ambientNoiseLevel + 15 && (currentTime - lastNoiseAlertTime) > noiseAlertThrottleTime) {
-                    showAlert("Background Noise Detected!", "Please stay in a quiet environment.", "error", "backgroundNoise");
-                    lastNoiseAlertTime = currentTime;
-                }
-            }, 3000);
-        });
-    };
-
     return (
         <div>
             <Webcam ref={webcamRef} style={{ width: 100, height: 100 }} />
             <canvas ref={canvasRef} style={{ width: 640, height: 480 }} />
-            {/* <div>
-                <p>Alert Counts:</p>
-                <ul>
-                    {Object.entries(alertCounts).map(([key, value]) => (
-                        <li key={key}>{key.replace(/([A-Z])/g, ' $1')}: {value}</li>
-                    ))}
-                </ul>
-            </div> */}
         </div>
     );
 };

@@ -73,6 +73,7 @@ const Quiz: React.FC = () => {
   const [ssId, setssId] = useState(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
+  const [proctorGate, setProctorGate] = useState(false);
 
   // Fetch user data when component mounts
   useEffect(() => {
@@ -402,8 +403,9 @@ const Quiz: React.FC = () => {
         )}
       </main>
     </div>
-
-    <div style={{position: "absolute", bottom: 0, left: 0}}><ProctoringSystem onStatusChange={setIsProctoringEnabled} /></div></>
+    {proctorGate && (    <div style={{position: "absolute", bottom: 0, left: 0}}><ProctoringSystem onStatusChange={setIsProctoringEnabled} isGameStarted={gameStarted} /></div>)}
+    
+</>
   );
 };
 
