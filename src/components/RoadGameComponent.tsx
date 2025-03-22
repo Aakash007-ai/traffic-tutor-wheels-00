@@ -151,6 +151,7 @@ interface RoadGameComponentProps {
   setFinalAnswers: (questions: GameQuestion[]) => void;
   module?: string; // Add module prop
   setssId: (e: string) => void;
+  language?: string; // Add language prop
 }
 
 const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
@@ -161,6 +162,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   setFinalAnswers,
   module = "Module1",
   setssId,
+  language = "ENGLISH",
 }) => {
   const [roadOffset, setRoadOffset] = useState(0);
   const [currentSign, setCurrentSign] = useState<TrafficSign | null>(null);
@@ -455,8 +457,13 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        console.log("Fetching questions for module:", module);
-        const data = await quizAppi.getQuestions(module);
+        console.log(
+          "Fetching questions for module:",
+          module,
+          "language:",
+          language
+        );
+        const data = await quizAppi.getQuestions(module, language);
         // Cast the API response to our ApiQuestionData type for proper typing
         setssId(data?.data?.ssId);
         const questionsArray = Object.values(data?.data?.initialQuestions)
@@ -488,7 +495,7 @@ const RoadGameComponent: React.FC<RoadGameComponentProps> = ({
     };
 
     fetchQuestions();
-  }, [module]); // Re-fetch questions when module changes
+  }, [module, language]); // Re-fetch questions when module or language changes
 
   const getSignImages = (type: string) => {
     console.log("type", type);

@@ -3,11 +3,16 @@ const BASE_API_URL =
 const SCORE_FEEDBACK_API_URL =
   "http://192.168.27.85:8091/api/v1/submit/score-feedback";
 
-const CLUSTER_API_URL = "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers/SelfVehicleAwareness"
+const CLUSTER_API_URL =
+  "https://insight360.qac24svc.dev/api/v2/config/rating/SafeWayHackers/SelfVehicleAwareness";
 
 const quizService = () => {
-  const getQuestions = async (module: string = "Module1") => {
-    const API_URL = `${BASE_API_URL}/${module}`;
+  const getQuestions = async (
+    module: string = "Module1",
+    language: string = "ENGLISH"
+  ) => {
+    const currentModule = language === "ENGLISH" ? module : "Module1_Hindi";
+    const API_URL = `${BASE_API_URL}/${currentModule}`;
     try {
       const response = await fetch(API_URL, {
         method: "GET",
@@ -137,7 +142,6 @@ const quizService = () => {
     }
   };
 
-
   const getClusterQuestions = async () => {
     try {
       const response = await fetch(CLUSTER_API_URL, {
@@ -157,17 +161,15 @@ const quizService = () => {
       console.error("Error fetching rating config:", error);
       throw error;
     }
-  }
-
+  };
 
   return {
     getQuestions,
     submitScoreFeedback,
-    getClusterQuestions
+    getClusterQuestions,
   };
 };
 
 const quizAppi = quizService();
 
 export default quizAppi;
-

@@ -9,7 +9,6 @@ import AnimatedTransition from "@/components/AnimatedTransition";
 import RoadGameComponent from "@/components/RoadGameComponent";
 import { ProctoringSystem } from "@/components/Proctoring";
 import quizAppi from "@/services";
-// import { quizAppi } from '../services/index.js';
 import carImage from "../assets/images/landing_car.png";
 
 // Define the GameQuestion interface to match RoadGameComponent
@@ -73,6 +72,7 @@ const Quiz: React.FC = () => {
   const [ssId, setssId] = useState(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
+  const [language, setLanguage] = useState("ENGLISH");
 
   // Fetch user data when component mounts
   useEffect(() => {
@@ -93,7 +93,7 @@ const Quiz: React.FC = () => {
 
       try {
         const response = await fetch(
-          "https://safeway-hackers-466060604919.us-central1.run.app/api/v1/user",
+          "https://safeway-hackers-l3ijlsr64a-uc.a.run.app/api/v1/user",
           {
             method: "GET",
             headers: {
@@ -265,10 +265,42 @@ const Quiz: React.FC = () => {
 
         <main className="w-full mx-auto px-4 relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
           {/* game over condition */}
+
           {!gameStarted || gameOver ? (
             <AnimatedTransition animation="scale">
-              <div className="glass-card p-8 md:p-10 rounded-2xl shadow-2xl backdrop-blur-lg bg-white/10 border border-white/20 max-w-2xl w-full mx-auto">
-                <div className="flex flex-col items-center text-center">
+              <div className="relative glass-card p-8 md:p-10 rounded-2xl shadow-2xl backdrop-blur-lg bg-white/10 border border-white/20 mx-auto">
+                {/* Smaller Toggle Button Positioned in Top Right */}
+                <div className="absolute top-4 right-4">
+                  <div
+                    onClick={() =>
+                      setLanguage(language === "ENGLISH" ? "HINDI" : "ENGLISH")
+                    }
+                    className="relative w-24 h-7 cursor-pointer rounded-full bg-white flex items-center transition duration-300 ease-in-out shadow-md px-1"
+                  >
+                    {/* Language Text Inside Toggle */}
+                    <span
+                      className={`absolute uppercase text-xs font-semibold transition-all duration-300 ease-in-out ${
+                        language === "ENGLISH"
+                          ? "left-7 text-[#0f172a]"
+                          : "right-8 text-[#22c55e]"
+                      }`}
+                    >
+                      {language}
+                    </span>
+
+                    {/* Sliding Toggle Circle */}
+                    <div
+                      className={`absolute w-5 h-5 rounded-full bg-[#22c55e] transition-all duration-300 ease-in-out shadow-lg ${
+                        language === "ENGLISH"
+                          ? "left-1"
+                          : "left-[calc(100%-1.75rem)] bg-[#0f172a]"
+                      }`}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="flex flex-col items-center text-center mt-6">
                   <div className="w-20 h-20 bg-[#22c55e]/20 rounded-full flex items-center justify-center mb-6 mx-auto">
                     {gameOver ? (
                       <Trophy className="h-8 w-8 text-[#22c55e]" />
@@ -282,11 +314,9 @@ const Quiz: React.FC = () => {
                   </h2>
 
                   {gameOver ? (
-                    <>
-                      <p className="text-gray-300 mb-8 text-lg">
-                        You scored {score} points!
-                      </p>
-                    </>
+                    <p className="text-gray-300 mb-8 text-lg">
+                      You scored {score} points!
+                    </p>
                   ) : (
                     <p className="text-gray-300 mb-6">
                       Navigate through traffic and answer questions about road
@@ -294,14 +324,14 @@ const Quiz: React.FC = () => {
                     </p>
                   )}
 
-                  {showModuleSelection ? (
-                    <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-                      <button
-                        onClick={() => handleModuleSelect("Module1")}
-                        className="bg-[#22c55e] hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20"
-                      >
-                        Module 1
-                      </button>
+                  <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
+                    <button
+                      onClick={() => handleModuleSelect("Module1")}
+                      className="bg-[#22c55e] hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20"
+                    >
+                      Beginner
+                    </button>
+                    {language !== "HINDI" ? (
                       <button
                         onClick={() =>
                           handleModuleSelect("GeneralTrafficRules")
@@ -313,24 +343,16 @@ const Quiz: React.FC = () => {
                             : ""
                         }`}
                       >
-                        Module 2{" "}
-                        {!module2Unlocked &&
-                          `(Score 80% in Module 1 to unlock)`}
+                        Advanced
+                        {!module2Unlocked && ` (score 80% to unlock)`}
                       </button>
-                      {gameOver && highestModule1Score > 0 && (
-                        <p className="text-sm text-gray-300 mt-2">
-                          Highest Module 1 Score: {highestModule1Score}%
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleStartGame}
-                      className="bg-[#22c55e] hover:bg-green-600 text-white px-10 py-5 rounded-full font-bold text-xl transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20 mx-auto"
-                    >
-                      Start Driving
-                    </button>
-                  )}
+                    ) : null}
+                    {gameOver && highestModule1Score > 0 && (
+                      <p className="text-sm text-gray-300 mt-2">
+                        Highest Beginner Score: {highestModule1Score}%
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </AnimatedTransition>
@@ -385,6 +407,7 @@ const Quiz: React.FC = () => {
                       setFinalAnswers={setFinalAnswers}
                       module={selectedModule}
                       setssId={setssId}
+                      language={language}
                     />
                   </div>
                 </div>
