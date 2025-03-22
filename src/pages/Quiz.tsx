@@ -428,7 +428,6 @@ const Quiz: React.FC = () => {
                       language={language}
                     />
                   </div>
-                )} */}
                 </div>
               </AnimatedTransition>
             </>
