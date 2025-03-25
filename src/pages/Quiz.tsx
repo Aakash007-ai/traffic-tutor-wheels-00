@@ -7,11 +7,10 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import AnimatedTransition from "@/components/AnimatedTransition";
 import RoadGameComponent from "@/components/RoadGameComponent";
-import { ProctoringSystem } from "@/components/Proctoring";
+// import { ProctoringSystem } from "@/components/Proctoring";
 import quizAppi from "@/services";
 import carImage from "../assets/images/landing_car.png";
 import Sound from "@/components/sound";
-
 // Define the GameQuestion interface to match RoadGameComponent
 interface GameQuestion {
   id: number;
@@ -39,7 +38,6 @@ interface GameQuestion {
   lang?: string;
   validations?: unknown;
 }
-
 // Define the Question interface
 interface Question {
   text: string;
@@ -49,9 +47,7 @@ interface Question {
   }[];
   explanation: string;
 }
-
 // Traffic questions
-
 const Quiz: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -75,9 +71,7 @@ const Quiz: React.FC = () => {
   const [isProctoringEnabled, setIsProctoringEnabled] = useState(false);
   const [language, setLanguage] = useState("ENGLISH");
   const [proctorGate, setProctorGate] = useState(true);
-
   const soundRef = useRef(null);
-
   // Fetch user data when component mounts
   useEffect(() => {
     const fetchUser = async () => {
@@ -88,13 +82,11 @@ const Quiz: React.FC = () => {
         );
         return accessTokenCookie ? accessTokenCookie.split("=")[1] : null;
       };
-
       const token = fetchAccessToken();
       if (!token) {
         console.error("Access token not found");
         return;
       }
-
       try {
         const response = await fetch(
           "https://safeway-hackers-466060604919.us-central1.run.app/api/v1/user",
@@ -106,21 +98,17 @@ const Quiz: React.FC = () => {
             },
           }
         );
-
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
         }
-
         const data = await response.json();
         if (data && data.id) {
           setUserId(data.id);
           console.log("User data fetched:", data);
-
           // Set highest score from user data
           if (data.maxScore) {
             setHighestModule1Score(data.maxScore);
           }
-
           // Check if Module 2 should be unlocked based on completed levels
           if (data.completedLevels && data.completedLevels.includes(1)) {
             setModule2Unlocked(true);
@@ -130,29 +118,23 @@ const Quiz: React.FC = () => {
         console.error("Error fetching user data:", err);
       }
     };
-
     fetchUser();
   }, []);
-
   // Spawn first sign immediately when game starts
   useEffect(() => {
     if (gameStarted && !firstSignSpawned && !gameOver) {
       setFirstSignSpawned(true);
     }
-
     if (!gameStarted) {
       setFirstSignSpawned(false);
     }
   }, [gameStarted, firstSignSpawned, gameOver]);
-
   // Increase distance over time
-
   const handleModuleSelect = (module: string) => {
     setSelectedModule(module);
     setShowModuleSelection(false);
     handleStartGame();
   };
-
   const handleStartGame = () => {
     soundRef?.current?.play();
     setGameStarted(true);
@@ -162,16 +144,13 @@ const Quiz: React.FC = () => {
     setGameSpeed(10); // Increased from 8 to 12
     setLastAnswerCorrect(null);
     setLastExplanation(null);
-    toast("Drive safely! Watch for traffic signs!");
   };
-
   // Check if Module 2 should be unlocked
   useEffect(() => {
     if (selectedModule === "Module_1" && score > highestModule1Score) {
       setHighestModule1Score(score);
       const maxScore = selectedModule === "GeneralTrafficRules" ? 20 : 48;
       const scorePercentage = (score / maxScore) * 100;
-
       // Unlock Module 2 if score is above 80%
       if (scorePercentage >= 80) {
         setModule2Unlocked(true);
@@ -179,26 +158,22 @@ const Quiz: React.FC = () => {
       }
     }
   }, [score, selectedModule, highestModule1Score]);
-
   const handleGameOver = async () => {
     soundRef?.current?.pause();
     setGameOver(true);
     setShowModuleSelection(true); // Show module selection again
     toast.error("Game Over! Drive safely next time!");
-
     // Update highest score for Module 1
     if (selectedModule === "Module_1" && score > highestModule1Score) {
       setHighestModule1Score(score);
       const maxScore = selectedModule === "GeneralTrafficRules" ? 20 : 48;
       const scorePercentage = (score / maxScore) * 100;
-
       // Unlock Module 2 if score is above 80%
       if (scorePercentage >= 80) {
         setModule2Unlocked(true);
         toast.success("Module 2 unlocked!");
       }
     }
-
     // Submit score and feedback to the API
     try {
       if (finalAnswers && finalAnswers.length > 0) {
@@ -219,7 +194,6 @@ const Quiz: React.FC = () => {
       console.error("Failed to submit score and feedback:", error);
     }
   };
-
   console.log("finalAnswers", finalAnswers);
   console.log("selectedModule", selectedModule);
   const handleAnswerQuestion = (
@@ -230,21 +204,18 @@ const Quiz: React.FC = () => {
     console.log("questionScore", questionScore);
     // Question is no longer active
     setQuestionActive(false);
-
     if (correct) {
       setScore((prev) => prev + Number(questionScore));
       setLastAnswerCorrect(true);
-      toast.success("Correct decision!");
+      // Removed duplicate toast.success('Correct decision!');
     } else {
       setLives((prev) => prev - 1);
       setLastAnswerCorrect(false);
-      toast.error("Incorrect decision!");
-
+      // Removed duplicate toast.error('Incorrect decision!');
       if (lives <= 1) {
         handleGameOver();
       }
     }
-
     // Find the matching question in our array to get the explanation
     if (question.explanation) {
       setLastExplanation(question.explanation);
@@ -255,12 +226,10 @@ const Quiz: React.FC = () => {
       setLastExplanation(null);
     }, 5000);
   };
-
   useEffect(() => {
     if (language === "ENGLISH") setSelectedModule("Module_1");
     else setSelectedModule("Module1_Hindi");
   }, [language]);
-
   return (
     <>
       <Sound ref={soundRef} />
@@ -268,14 +237,12 @@ const Quiz: React.FC = () => {
         {/* Background pattern */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a] to-[#1e293b] z-0"></div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cGF0aCBkPSJNMzAgMzBtLTI4IDBhMjggMjggMCAxIDAgNTYgMCAyOCAyOCAwIDEgMC01NiAweiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIyZjQzIiBzdHJva2Utd2lkdGg9IjAuNSIvPjwvc3ZnPg==')] opacity-10 z-0"></div>
-
         {/* Decorative road line and car animation only shown when game is not started */}
         {(!gameStarted || gameOver) && (
           <>
             <div className="absolute bottom-0 left-0 right-0 h-8 bg-black z-10">
               <div className="road-dash h-2 absolute top-3 left-0 right-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyIj48cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=')]"></div>
             </div>
-
             <motion.div
               className="absolute bottom-4 z-20"
               initial={{ x: -100 }}
@@ -286,12 +253,9 @@ const Quiz: React.FC = () => {
             </motion.div>
           </>
         )}
-
         <Header />
-
         <main className="w-full mx-auto px-4 relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
           {/* game over condition */}
-
           {!gameStarted || gameOver ? (
             <AnimatedTransition animation="scale">
               <div className="relative glass-card p-8 md:p-10 rounded-2xl w-[420px] shadow-2xl backdrop-blur-lg bg-white/10 border border-white/20 mx-auto">
@@ -305,24 +269,24 @@ const Quiz: React.FC = () => {
                   >
                     {/* Language Text Inside Toggle */}
                     <span
-                      className={`absolute uppercase text-xs font-semibold transition-all duration-300 ease-in-out ${language === "ENGLISH"
+                      className={`absolute uppercase text-xs font-semibold transition-all duration-300 ease-in-out ${
+                        language === "ENGLISH"
                           ? "left-7 text-[#0f172a]"
                           : "right-8 text-[#22c55e]"
-                        }`}
+                      }`}
                     >
                       {language}
                     </span>
-
                     {/* Sliding Toggle Circle */}
                     <div
-                      className={`absolute w-5 h-5 rounded-full bg-[#22c55e] transition-all duration-300 ease-in-out shadow-lg ${language === "ENGLISH"
+                      className={`absolute w-5 h-5 rounded-full bg-[#22c55e] transition-all duration-300 ease-in-out shadow-lg ${
+                        language === "ENGLISH"
                           ? "left-1"
                           : "left-[calc(100%-1.75rem)] bg-[#0f172a]"
-                        }`}
+                      }`}
                     ></div>
                   </div>
                 </div>
-
                 {/* Main Content */}
                 <div className="flex flex-col items-center text-center mt-6">
                   <div className="w-20 h-20 bg-[#22c55e]/20 rounded-full flex items-center justify-center mb-6 mx-auto">
@@ -332,11 +296,9 @@ const Quiz: React.FC = () => {
                       <Car className="h-8 w-8 text-[#22c55e]" />
                     )}
                   </div>
-
                   <h2 className="text-4xl font-fredoka mb-3 text-white">
                     {gameOver ? "Game Over!" : "Traffic Safety Quiz"}
                   </h2>
-
                   {gameOver ? (
                     <p className="text-gray-300 mb-8 text-lg">
                       You scored {score} points!
@@ -347,7 +309,6 @@ const Quiz: React.FC = () => {
                       safety!
                     </p>
                   )}
-
                   <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
                     <button
                       onClick={() => handleModuleSelect("Module_1")}
@@ -361,10 +322,11 @@ const Quiz: React.FC = () => {
                           handleModuleSelect("GeneralTrafficRules")
                         }
                         disabled={!module2Unlocked}
-                        className={`bg-[#22c55e] hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20 ${!module2Unlocked
+                        className={`bg-[#22c55e] hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-[#22c55e]/20 ${
+                          !module2Unlocked
                             ? "opacity-50 cursor-not-allowed hover:scale-100"
                             : ""
-                          }`}
+                        }`}
                       >
                         Advanced
                         {!module2Unlocked && ` (score 80% to unlock)`}
@@ -386,7 +348,6 @@ const Quiz: React.FC = () => {
                       <p className="font-bold text-xl">{score}</p>
                     </div>
                   </div>
-
                   <div className="glass-card py-2 px-20 rounded-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-lg">
                     <div className="flex flex-col items-center">
                       <Heart className="h-6 w-6 text-red-500 mb-2" />
@@ -409,7 +370,6 @@ const Quiz: React.FC = () => {
                   </div>
                 </div>
               </AnimatedTransition>
-
               {/* Game area */}
               <AnimatedTransition
                 animation="scale"
@@ -434,10 +394,15 @@ const Quiz: React.FC = () => {
           )}
         </main>
       </div>
-      {proctorGate && (<div style={{ position: "absolute", bottom: 0, right: 0 }}><ProctoringSystem setIsProctoringEnabled={setIsProctoringEnabled} isGameStarted={gameStarted} /></div>)}
-
+      {/* {proctorGate && (
+        <div style={{ position: "absolute", bottom: 0, right: 0 }}>
+          <ProctoringSystem
+            setIsProctoringEnabled={setIsProctoringEnabled}
+            isGameStarted={gameStarted}
+          />
+        </div>
+      )} */}
     </>
   );
 };
-
 export default Quiz;

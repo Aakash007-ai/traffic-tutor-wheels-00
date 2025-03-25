@@ -3,143 +3,159 @@ import { GameQuestion } from "../QuizController/QuizController";
 import { OptionItem } from "../ui/quizModal/OptionItem";
 import OneTimeSound from "@/assets/soundEffects/oneTimeSound";
 import { toast } from "sonner";
+import correctPedestrian from "./../../assets/signs/correctPedestrian.jpg";
+import correctOneWay from "./../../assets/signs/compulsoryTurnLeft.png";
+import correctStop from "./../../assets/signs/correctStop.png";
+
 interface IOptionsPopUpProps {
   currentQuestion: GameQuestion;
-  handleAnswer: (seqNumber) => void;
+  handleAnswer: (seqNumber: number) => void;
 }
 
 const OptionsPopUp: React.FC<IOptionsPopUpProps> = ({
   currentQuestion,
   handleAnswer,
 }) => {
-  const [questionTimer, setQuestionTimer] = useState<number>(20);
+  const [questionTimer, setQuestionTimer] = useState<number>(30);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [showingCorrectAnswer, setShowingCorrectAnswer] =
     useState<boolean>(false);
 
-  // Get the correct answer sequence
   const correctAnswerSequence = Number(currentQuestion.metadata.ans);
   const correctAnsRef = useRef(null);
   const wrongAnsRef = useRef(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    let timerInterval: NodeJS.Timeout | null = null;
+    if (!currentQuestion || selectedOption || showingCorrectAnswer) return;
 
-    if (currentQuestion && !selectedOption && !showingCorrectAnswer) {
-      // Reset timer to 20 seconds when question appears
-      setQuestionTimer(20);
+    setQuestionTimer(30); // Reset timer
+    if (timerRef.current) clearInterval(timerRef.current);
 
-      // Start countdown
-      timerInterval = setInterval(() => {
-        setQuestionTimer((prevTime) => {
-          const newTime = prevTime - 1;
+    timerRef.current = setInterval(() => {
+      setQuestionTimer((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(timerRef.current!);
+          handleTimeout();
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
 
-          // If timer reaches 0, close popup and reduce life
-          if (newTime <= 0) {
-            // Clear the interval
-            clearInterval(timerInterval);
+    return () => clearInterval(timerRef.current!);
+  }, [currentQuestion, selectedOption, showingCorrectAnswer]);
 
-            const wrongAnswer = currentQuestion.options.filter(
-              (option) => option.sequence != currentQuestion.metadata.ans
-            )[0];
+  const handleTimeout = () => {
+    const wrongAnswer = currentQuestion.options.find(
+      (option) => option.sequence !== correctAnswerSequence
+    );
+    const correctOption = currentQuestion.options.find(
+      (option) => option.sequence === correctAnswerSequence
+    );
 
-            // Find the correct option
-            const correctOption = currentQuestion.options.find(
-              (option) => option.sequence === correctAnswerSequence
-            );
+    toast.error(
+      <div className="text-center flex items-center justify-center flex-col w-full gap-2">
+        <div className="text-xl font-bold mb-2">⏰ Time's Up!</div>
+        <div className="text-amber-600 font-medium">
+          You need to be quicker next time!
+        </div>
+        <div className="mt-2 p-2 bg-blue-50 rounded-md border border-blue-200">
+          <p className="font-semibold text-blue-800">The correct answer was:</p>
+          <p className="mt-1 text-blue-700">{correctOption?.toolTip}</p>
+        </div>
+      </div>,
+      {
+        duration: 2000,
+        className: "bg-amber-50 border-2 border-amber-300 p-4",
+        position: "top-center",
+      }
+    );
 
-            // Show toast with correct answer
-            toast.error(
-              <div>
-                <p>Time's up!</p>
-                <p className="font-medium mt-1">
-                  The correct answer was: {correctOption?.toolTip}
-                </p>
-              </div>,
-              {
-                duration: 3000, // Show for 3 seconds
-              }
-            );
+    setSelectedOption(wrongAnswer?.sequence || null);
+    setShowingCorrectAnswer(true);
 
-            // Show the wrong answer was selected and highlight the correct one
-            setSelectedOption(wrongAnswer.sequence);
-            setShowingCorrectAnswer(true);
-
-            // Wait 2 seconds before closing
-            setTimeout(() => {
-              handleAnswer(wrongAnswer.sequence);
-            }, 2000);
-          }
-          return newTime;
-        });
-      }, 1000);
-    }
-
-    // Clean up interval on component unmount or when popup closes
-    return () => {
-      if (timerInterval) clearInterval(timerInterval);
-    };
-  }, [currentQuestion, handleAnswer, selectedOption, showingCorrectAnswer]);
+    setTimeout(() => {
+      handleAnswer(wrongAnswer?.sequence || -1);
+    }, 2000);
+  };
 
   const handleOptionSelect = (sequence: number) => {
-    // Clear any existing timers
-    setQuestionTimer(0);
+    if (timerRef.current) clearInterval(timerRef.current);
 
-    // Set the selected option
+    setQuestionTimer(0);
     setSelectedOption(sequence);
 
-    // Check if the answer is correct
     const isCorrect = sequence === correctAnswerSequence;
-
     if (isCorrect) {
-      // If correct, show success toast and wait 2 seconds
-      toast.success("Correct answer!");
+      toast.success(
+        <div className="flex flex-col items-center justify-center gap-1 text-center w-full">
+          <div className="text-xl font-bold mb-2">🎉 Excellent! 🎉</div>
+          <div className="text-green-700 font-medium">
+            You got it right! Great job!
+          </div>
+          <div className="mt-3 flex space-x-2">
+            {Array(5)
+              .fill(0)
+              .map((_, i) => (
+                <span
+                  key={i}
+                  className="animate-bounce inline-block"
+                  style={{ animationDelay: `${i * 0.1}s` }}
+                >
+                  ⭐
+                </span>
+              ))}
+          </div>
+        </div>,
+        {
+          duration: 2000,
+          className: "bg-green-50 border-2 border-green-500 p-4",
+          position: "top-center",
+        }
+      );
       correctAnsRef.current?.playSoundOnce();
-
-      // Show the correct answer is selected
-      setShowingCorrectAnswer(true);
-
-      // Wait 2 seconds before closing
-      setTimeout(() => {
-        handleAnswer(sequence);
-      }, 2000);
     } else {
-      // If incorrect, find the correct option
       const correctOption = currentQuestion.options.find(
         (option) => option.sequence === correctAnswerSequence
       );
       wrongAnsRef.current?.playSoundOnce();
+      console.log("correctOption", correctOption);
 
-      // Show toast with correct answer
       toast.error(
-        <div>
-          <p>Wrong answer!</p>
-          <p className="font-medium mt-1">
-            The correct answer was: {correctOption?.toolTip}
-          </p>
+        <div className="text-center flex items-center justify-center flex-col w-full gap-2">
+          <div className="text-lg font-semibold mb-1">😕 Not Quite Right</div>
+          <div className="text-red-600 mb-2">
+            Don't worry, learning is a journey!
+          </div>
+          <div className="bg-blue-50 w-full p-2 rounded border border-blue-200 inline-block">
+            <span className="text-blue-800 font-medium">
+              The correct answer was:
+            </span>
+            <div className="text-blue-700 mt-1">{correctOption?.toolTip}</div>
+          </div>
         </div>,
         {
-          duration: 3000, // Show for 3 seconds
+          duration: 2000,
+          className: "bg-white border border-red-300 shadow-lg",
+          position: "top-center",
         }
       );
-
-      // Show the correct answer for 2 seconds
-      setShowingCorrectAnswer(true);
-
-      // Wait 2 seconds before closing
-      setTimeout(() => {
-        handleAnswer(sequence);
-      }, 2000);
     }
+
+    setShowingCorrectAnswer(true);
+    setTimeout(() => {
+      handleAnswer(sequence);
+    }, 2000);
   };
 
   return (
     <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-green-50/90 p-4 rounded-lg shadow-lg text-center max-w-md w-full z-20">
-      <div className="flex justify-between items-center ">
+      <div className="flex justify-between items-center">
         <p className="text-xl font-medium text-green-900 mb-3">
           {currentQuestion?.name}
         </p>
-        <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium  text-green-900">
+        <div className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-green-900">
           {questionTimer > 0 ? `${questionTimer}s` : ""}
         </div>
       </div>
